@@ -21,7 +21,7 @@ Next 14.2.5
 1. 新規プロジェクトを作成する場合
     1. `cd trade-dashboard`
     1. .git/以外のファイルを削除
-    1. `npx create-next-app@latest . --ts --no-tailwind --no-eslint --app --src-dir --import-alias '@/*'`
+    1. `npx create-next-app@latest . --ts --tailwind --eslint --app --src-dir --import-alias '@/*'`
 1. 既存プロジェクトを導入する場合
     1. `cd trade-dashboard`
     1. `npm install`

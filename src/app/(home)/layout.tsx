@@ -1,3 +1,4 @@
+import '../../styles/globals.css';
 interface RootLayoutprops {
   children: React.ReactNode;
 }
