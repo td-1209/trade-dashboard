@@ -28,7 +28,7 @@ Next 14.2.5
 ### UIコンポーネントライブラリ
 文字色やブレイクポイントなどの定数は`src/components/layouts/Theme.ts`で定義  
 その他サイズなど細かなCSS設定は各コンポーネントに直接記入  
-**新規プロジェクトにTailwindCSSを導入する手順（[参考情報](https://nextjs.org/docs/app/building-your-application/styling/tailwind-css)）**
+新規プロジェクトにTailwindCSSを導入する手順は以下（[参考情報](https://nextjs.org/docs/app/building-your-application/styling/tailwind-css)）
 1. `npm install tailwindcss postcss autoprefixer`
 1. `npx tailwindcss init -p`
 1. tailwind.config.tsのConfig.contentに以下追加
@@ -74,10 +74,10 @@ wakarase/
 
 # Usage
 1. 開発環境での実行
-    1. `cd wakarase`
+    1. `cd trade-dashboard`
     1. `npm run dev`
 1. 本番環境での実行
-    1. `cd wakarase`
+    1. `cd trade-dashboard`
     1. `npm install --omit=dev && npm run build`
     1. `npm run start`
 1. 環境リセット
