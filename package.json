@@ -12,6 +12,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.679.0",
+    "@aws-sdk/lib-dynamodb": "^3.679.0",
     "autoprefixer": "^10.4.20",
     "next": "15.0.1",
     "postcss": "^8.4.47",

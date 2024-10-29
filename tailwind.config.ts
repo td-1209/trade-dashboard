@@ -26,7 +26,7 @@ export const palette = {
   }
 };
 
-export const config: Config = {
+const config: Config = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
@@ -72,3 +72,4 @@ export const config: Config = {
   },
   plugins: [],
 };
+export default config;
