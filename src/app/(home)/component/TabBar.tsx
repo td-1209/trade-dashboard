@@ -16,6 +16,7 @@ export const TabBar = () => {
 
   return (
     <>
+      {/* fix: 要素も含めてデザイン見直し */}
       <nav className="fixed bottom-0 w-full bg-white border-t">
         <ul className="flex justify-around">
           {tabs.map((tab) => (
