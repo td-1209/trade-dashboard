@@ -1,3 +1,4 @@
+import { TabBar } from '@/app/(home)/component/TabBar';
 import '../../styles/globals.css';
 interface RootLayoutprops {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ export default function RootLayout(props: RootLayoutprops): React.JSX.Element {
       <body>
         <div>
           {props.children}
+          <TabBar />
         </div>
       </body>
     </html>
