@@ -42,11 +42,7 @@ export default async function Home() {
 
   return (
     <>
-      test
-      {/* {items.map((item, index) => (
-        <p className='text-secondary'>{ item.id }</p>
-      ))
-      } */}
+      home
     </>
   );
 }

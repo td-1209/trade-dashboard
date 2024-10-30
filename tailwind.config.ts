@@ -22,7 +22,9 @@ export const palette = {
     darkGrayActive: '#222222',
     black: '#212121',
     blackTrans: '#212121F7',
-    blackActive: '#000000'
+    blackActive: '#000000',
+    positive: '#5BAD92',
+    negative: '#EA0032'
   }
 };
 
@@ -54,6 +56,8 @@ const config: Config = {
         black: palette.dark.black,
         blackTrans: palette.dark.blackTrans,
         blackActive: palette.dark.blackActive,
+        positive: palette.dark.positive,
+        negative: palette.dark.negative,
         headerBG: palette.dark.black,
         appTitle: palette.dark.white,
         bodyBG: palette.dark.black,
