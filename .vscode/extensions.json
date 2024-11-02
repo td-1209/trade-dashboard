@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "fabiospampinato.vscode-todo-plus",
+        "dbaeumer.vscode-eslint",
+        "orta.vscode-jest"
+    ]
+}
