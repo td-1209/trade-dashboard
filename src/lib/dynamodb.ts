@@ -117,7 +117,7 @@ interface updateItemProps {
   tableName: string;
 }
 
-export async function updateItem<T extends Record<string, Item>>({ partitionKey, updateFields, tableName}: updateItemProps) {
+export async function updateItem({ partitionKey, updateFields, tableName}: updateItemProps) {
   const updateExpression = 'SET ' + Object.keys(updateFields).map(key => `#${key} = :${key}`).join(', ');
   const expressionAttributeValues = Object.entries(updateFields).reduce(
     (acc, [key, value]) => ({ ...acc, [`:${key}`]: value }), {}
@@ -140,7 +140,7 @@ interface deleteItemProps {
   tableName: string;
 }
 
-export async function deleteItem<T extends Record<string, Item>>({ partitionKey, tableName }: deleteItemProps) {
+export async function deleteItem({ partitionKey, tableName }: deleteItemProps) {
   const params = {
     TableName: tableName,
     Key: partitionKey,
@@ -154,7 +154,7 @@ interface isExistPartitionKeyProps {
   tableName: string;
 }
 
-export async function isExistPartitionKey<T extends Record<string, Item>>({ partitionKeyName, partitionKeyValue, tableName }: isExistPartitionKeyProps): Promise<boolean> {
+export async function isExistPartitionKey({ partitionKeyName, partitionKeyValue, tableName }: isExistPartitionKeyProps): Promise<boolean> {
   const params = {
     TableName: tableName,
     KeyConditionExpression: `${partitionKeyName} = :value`,

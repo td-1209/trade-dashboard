@@ -4,7 +4,7 @@ import { PlRecord, Method } from '@/types/type';
 
 export default async function Home({ params }: { params: Promise<{ record_id: string }> }) {
   const recordId = (await params).record_id;
-  const isExistRecord = await isExistPartitionKey<PlRecord>({ partitionKeyName: 'id', partitionKeyValue: recordId, tableName: 'td-profit-loss' });
+  const isExistRecord = await isExistPartitionKey({ partitionKeyName: 'id', partitionKeyValue: recordId, tableName: 'td-profit-loss' });
   const existPlRecord = isExistRecord ? await readItem<PlRecord>({ partitionKey: { id: recordId }, tableName: 'td-profit-loss' }) : undefined;
   const methods = await readAllItems<Method>({ tableName: 'td-method' });
   return (
