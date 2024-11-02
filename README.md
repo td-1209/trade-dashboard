@@ -85,4 +85,3 @@ wakarase/
     1. `rm -rf ~/.npm`
     1. `rm -rf node_modules`
     1. `rm -rf .next`
-    1. `npm install`
