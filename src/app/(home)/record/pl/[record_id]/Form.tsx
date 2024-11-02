@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Item, PlRecord, Position, TimeZone, Currencies, Method } from '@/types/type';
-import { FormTwinButtons } from '@/app/(home)/component/Button';
-import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/component/FormParts';
+import { FormTwinButtons } from '@/app/(home)/components/Button';
+import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
 import { calculatePips } from '@/lib/calc';
 import { fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';

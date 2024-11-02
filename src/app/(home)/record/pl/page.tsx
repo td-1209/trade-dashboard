@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { readAllItems, sortItems } from '@/lib/dynamodb';
-import { ProfitLossRecordCard } from '@/app/(home)/component/Card';
-import { DummyButton } from '@/app/(home)/component/Button';
+import { ProfitLossRecordCard } from '@/app/(home)/components/Card';
+import { DummyButton } from '@/app/(home)/components/Button';
 import { generateULID } from '@/lib/calc';
 import { PlRecord } from '@/types/type';
 
