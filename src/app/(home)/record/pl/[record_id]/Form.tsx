@@ -300,6 +300,4 @@ export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: 
       </form>
     </div>
   );
-};
-
-// fix: レコードを最新順に並べたい（レコード取得順ではなく、Dynamoでできそう）
+}

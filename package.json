@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run lint-fix & npm run type-check & npm run next-dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "next-dev": "next dev",
+    "lint-fix": "next lint --fix",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "react": "19.0.0-rc-02c0e824-20241028",

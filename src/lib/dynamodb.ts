@@ -184,4 +184,4 @@ export function sortItems<T extends Record<string, Item>>({ items, keyName, type
   default:
     throw new Error('ソートタイプの値が不正です。');
   }
-};
+}

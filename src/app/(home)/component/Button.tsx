@@ -69,7 +69,7 @@ export const FormTwinButtons: React.FC<FormTwinButtonsType> = ({ leftLabel, righ
 
 interface DummyButtonProps {
   label: string;
-};
+}
 
 export const DummyButton: React.FC<DummyButtonProps> = ({ label }) => {
   return (
