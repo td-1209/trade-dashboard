@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 const tabs = [
   { name: '市場', path: '/market' },
   { name: '戦略', path: '/strategy' },
-  { name: '記録', path: '/record' },
+  { name: '記録', path: '/record/pl' },
   { name: '分析', path: '/analysis' },
   { name: '手法', path: '/method' },
 ];
@@ -16,9 +16,9 @@ export const TabBar = () => {
 
   return (
     <>
-      {/* fix: 要素も含めてデザイン見直し */}
-      <nav className="fixed bottom-0 w-full bg-white border-t">
-        <ul className="flex justify-around">
+      {/* fix: 要素見直し・絵文字追加 */}
+      <nav className='fixed bottom-0 w-full bg-white border-t'>
+        <ul className='flex justify-around'>
           {tabs.map((tab) => (
             <li key={tab.path}>
               <Link href={tab.path}>
