@@ -1,4 +1,4 @@
-import { Item } from '@/types/type'; 
+import { Item } from '../types/type'; 
 
 interface fetchPostRequestProps {
   endpoint: string;

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readItem } from '@/lib/dynamodb';
-import { PlRecord } from '@/types/type';
+import { readItem } from '../../../../lib/dynamodb';
+import { PlRecord } from '../../../../types/type';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

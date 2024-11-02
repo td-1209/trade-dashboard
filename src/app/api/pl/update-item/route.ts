@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateItem } from '@/lib/dynamodb';
+import { updateItem } from '../../../../lib/dynamodb';
 
 export async function POST(req: Request) {
   try {

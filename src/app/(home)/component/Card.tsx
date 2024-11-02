@@ -1,9 +1,9 @@
 /* eslint-disable no-irregular-whitespace */
 
 import Link from 'next/link';
-import { PlRecord, Method } from '@/types/type';
-import { processInputToDateTime } from '@/lib/calc';
-import { readItem } from '@/lib/dynamodb';
+import { readItem } from '../../../lib/dynamodb';
+import { PlRecord, Method } from '../../../types/type';
+import { processInputToDateTime } from '../../../lib/calc';
 
 export const ProfitLossRecordCard = async (item: PlRecord) => {
   const formattedEnteredAt = processInputToDateTime({ dateTime: item.enteredAt, timeZone: item.timeZone });

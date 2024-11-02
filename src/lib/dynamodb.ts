@@ -1,7 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, DeleteCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { AWS_DEFAULT_REGION } from '@/config/constants';
-import { Item } from '@/types/type';
+import { AWS_DEFAULT_REGION } from '../config/constants';
+import { Item } from '../types/type';
 
 const client = new DynamoDBClient({region: AWS_DEFAULT_REGION,});
 const docClient = DynamoDBDocumentClient.from(client);

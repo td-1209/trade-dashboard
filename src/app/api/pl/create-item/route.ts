@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createItem } from '@/lib/dynamodb';
-import { PlRecord } from '@/types/type';
+import { createItem } from '../../../../lib/dynamodb';
+import { PlRecord } from '../../../../types/type';
 
 export async function POST(req: Request) {
   try {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Item } from '@/types/type';
+import { Item } from '../types/type';
 
 type UpdatedFields<T> = {[K in keyof T]: boolean};
 type FormDataHookReturn<T extends Record<string, Item>> = [

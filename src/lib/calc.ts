@@ -1,7 +1,7 @@
 import { parse, format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { ja } from 'date-fns/locale';
-import { Currencies, Position, TimeZone } from '@/types/type';
+import { Currencies, Position, TimeZone } from '../types/type';
 
 export function generateULID(initialWord: string): string {
   const timeNow = Date.now();

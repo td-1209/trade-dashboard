@@ -1,6 +1,6 @@
-import { RecordForm } from '@/app/(home)/record/pl/[record_id]/Form';
-import { isExistPartitionKey, readItem, readAllItems } from '@/lib/dynamodb';
-import { PlRecord, Method } from '@/types/type'; 
+import { RecordForm } from '../../../../../app/(home)/record/pl/[record_id]/Form';
+import { isExistPartitionKey, readItem, readAllItems } from '../../../../../lib/dynamodb';
+import { PlRecord, Method } from '../../../../../types/type'; 
 
 export default async function Home({ params }: { params: Promise<{ record_id: string }> }) {
   const recordId = (await params).record_id;

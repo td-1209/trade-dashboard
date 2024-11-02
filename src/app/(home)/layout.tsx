@@ -1,4 +1,4 @@
-import { TabBar } from '@/app/(home)/component/TabBar';
+import { TabBar } from '../../app/(home)/component/TabBar';
 import '../../styles/globals.css';
 interface RootLayoutprops {
   children: React.ReactNode;

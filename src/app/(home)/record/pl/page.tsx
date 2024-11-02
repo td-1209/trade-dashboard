@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { readAllItems, sortItems } from '@/lib/dynamodb';
-import { ProfitLossRecordCard } from '@/app/(home)/component/Card';
-import { DummyButton } from '@/app/(home)/component/Button';
-import { generateULID } from '@/lib/calc';
-import { PlRecord } from '@/types/type';
+import { readAllItems, sortItems } from '../../../../lib/dynamodb';
+import { ProfitLossRecordCard } from '../../../../app/(home)/component/Card';
+import { DummyButton } from '../../../../app/(home)/component/Button';
+import { generateULID } from '../../../../lib/calc';
+import { PlRecord } from '../../../../types/type';
 
 export default async function Home() {
   const items = await readAllItems<PlRecord>({ tableName: 'td-profit-loss' });
