@@ -18,8 +18,8 @@ export const TextForm: React.FC<TextFormProps> = ({
   errorMessage
 }) => {
   return (
-    <div>
-      <label className='block text-lightGray'>
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray'>
         {label}
       </label>
       <input
@@ -32,9 +32,9 @@ export const TextForm: React.FC<TextFormProps> = ({
       />
       <div>
         {errorMessage? (
-          <p className='text-negative'>{errorMessage}</p>
+          <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
-          <p className='text-transparent'>&#8203;</p>
+          <p className='text-sm text-transparent'>&#8203;</p>
         )}
       </div>
     </div>
@@ -59,8 +59,8 @@ export const NumberForm: React.FC<NumberFormProps> = ({
   errorMessage
 }) => {
   return (
-    <div>
-      <label className='block text-lightGray'>
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray'>
         {label}
       </label>
       <input
@@ -73,9 +73,9 @@ export const NumberForm: React.FC<NumberFormProps> = ({
       />
       <div>
         {errorMessage? (
-          <p className='text-negative'>{errorMessage}</p>
+          <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
-          <p className='text-transparent'>&#8203;</p>
+          <p className='text-sm text-transparent'>&#8203;</p>
         )}
       </div>
     </div>
@@ -101,8 +101,8 @@ export const SelectForm: React.FC<SelectFormProps> = ({
   errorMessage
 }) => {
   return (
-    <div>
-      <label className='block text-lightGray'>
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray'>
         {label}
       </label>
       <select
@@ -119,9 +119,9 @@ export const SelectForm: React.FC<SelectFormProps> = ({
       </select>
       <div>
         {errorMessage ? (
-          <p className='text-negative'>{errorMessage}</p>
+          <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
-          <p className='text-transparent'>&#8203;</p>
+          <p className='text-sm text-transparent'>&#8203;</p>
         )}
       </div>
     </div>
@@ -146,8 +146,8 @@ export const RadioForm: React.FC<RadioFormProps> = ({
   errorMessage
 }) => {
   return (
-    <div>
-      <label className='block text-lightGray mb-2'>
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray mb-2'>
         {label}
       </label>
       <div className='space-x-5 flex'>
@@ -170,9 +170,9 @@ export const RadioForm: React.FC<RadioFormProps> = ({
       </div>
       <div>
         {errorMessage ? (
-          <p className='text-negative mt-1'>{errorMessage}</p>
+          <p className='text-sm text-negative mt-1'>{errorMessage}</p>
         ) : (
-          <p className='text-transparent mt-1'>&#8203;</p>
+          <p className='text-sm text-transparent mt-1'>&#8203;</p>
         )}
       </div>
     </div>

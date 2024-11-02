@@ -253,8 +253,14 @@ export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: 
   return (
     <div className='px-5 py-5'>
       <form onSubmit={handleSubmit}>
-        <SelectForm label={'ポジション'} name={'position'} value={formData.position} onChange={handleChangeSelectForm} options={positionOptions} errorMessage={errors.position} />
-        <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <SelectForm label={'ポジション'} name={'position'} value={formData.position} onChange={handleChangeSelectForm} options={positionOptions} errorMessage={errors.position} />
+          </div>
+          <div className='flex-1'>
+            <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
+          </div>
+        </div>
         <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
         <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
         <div className='flex space-x-5'>
