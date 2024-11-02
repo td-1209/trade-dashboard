@@ -78,7 +78,7 @@ wakarase/
     1. `npm run dev`
 1. 本番環境での実行
     1. `cd trade-dashboard`
-    1. `npm install --omit=dev && npm run build`
+    1. `npm install && npm run build`
     1. `npm run start`
 1. 環境リセット
     1. `npm cache clean --force`
