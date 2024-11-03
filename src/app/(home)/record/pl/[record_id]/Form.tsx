@@ -1,65 +1,60 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Item, PlRecord, Position, TimeZone, Currencies, Method } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
 import { calculatePips } from '@/lib/calc';
-import { fetchPostRequest } from '@/lib/request';
+import { fetchGETRequestItem, fetchGETRequestItems, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
+
+const positionOptions: {
+  value: Position;
+  label: 'ロング' | 'ショート';
+}[] = [
+  { value: 'long', label: 'ロング' },
+  { value: 'short', label: 'ショート' },
+];
+
+const timeZoneOptions: {
+  value: TimeZone;
+  label: TimeZone;
+}[] = [
+  { value: '+00:00', label: '+00:00' },
+  { value: '+02:00', label: '+02:00' },
+  { value: '+03:00', label: '+03:00' },
+  { value: '+09:00', label: '+09:00' },
+];
+
+const currencyOptions: {
+  value: Currencies;
+  label: Currencies;
+}[] = [
+  { value: 'USD', label: 'USD' },
+  { value: 'JPY', label: 'JPY' },
+  { value: 'GBP', label: 'GBP' },
+  { value: 'AUD', label: 'AUD' },
+  { value: 'EUR', label: 'EUR' },
+  { value: 'NZD', label: 'NZD' },
+];
+
+const isDemoOptions = [
+  { value: true, label: 'オン' },
+  { value: false, label: 'オフ' }
+];
 
 interface RecordFormProps {
   recordId: string;
-  isExistRecord: boolean;
-  existPlRecord?: PlRecord;
-  methods: Method[];
 }
 
-export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: RecordFormProps) {
-  // 定数
-  const positionOptions: {
-    value: Position;
-    label: 'ロング' | 'ショート';
-  }[] = [
-    { value: 'long', label: 'ロング' },
-    { value: 'short', label: 'ショート' },
-  ];
-  const timeZoneOptions: {
-    value: TimeZone;
-    label: TimeZone;
-  }[] = [
-    { value: '+00:00', label: '+00:00' },
-    { value: '+02:00', label: '+02:00' },
-    { value: '+03:00', label: '+03:00' },
-    { value: '+09:00', label: '+09:00' },
-  ];
-  const currencyOptions: {
-    value: Currencies;
-    label: Currencies;
-  }[] = [
-    { value: 'USD', label: 'USD' },
-    { value: 'JPY', label: 'JPY' },
-    { value: 'GBP', label: 'GBP' },
-    { value: 'AUD', label: 'AUD' },
-    { value: 'EUR', label: 'EUR' },
-    { value: 'NZD', label: 'NZD' },
-  ];
-  const methodOptions = methods.map(
-    method => ({
-      value: method.id,
-      label: method.name
-    })
-  );
-  const isDemoOptions = [
-    { value: true, label: 'オン' },
-    { value: false, label: 'オフ' }
-  ];
-  const initialItem: PlRecord = existPlRecord ? existPlRecord : {
+export function RecordForm({ recordId }: RecordFormProps) {
+  // 初期値
+  const initialItem: PlRecord = {
     id: recordId,
     enteredAt: '2024-11-01_01-01',
     exitedAt: '2024-11-30_01-01',
-    timeZone: '+00:00',
+    timeZone: '+02:00',
     baseCurrency: 'USD',
     quoteCurrency: 'JPY',
     currencyAmount: 1000,
@@ -68,25 +63,31 @@ export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: 
     exitPrice: 999.999,
     profitLossPrice: 99999,
     profitLossPips: -999.999,
-    method: methodOptions[0].value,
+    method: '',
     isDemo: false,
     memo: '',
   };
+  const initialMethodOptions = [
+    { value: '', label: '' },
+  ];
 
   // 型
   type Errors = {[K in keyof PlRecord]?: string};
-
+  
   // 状態
   const [
     formData, updatedFields,
     {
       setFormData, setUpdatedFields,
       handleChangeStringForm, handleChangeNumberForm,
-      handleChangeSelectForm, handleChangeRadioForm, resetFormData
+      handleChangeSelectForm, handleChangeRadioForm, resetUpdatedFields
     }
   ] = useFormData(initialItem);
+  const [isExistRecord, setIsExistRecord] = useState<boolean>(false);
+  const [methodOptions, setMethodOptions] = useState<{ value: string; label: string; }[]>(initialMethodOptions);
   const [errors, setErrors] = useState<Errors>({});
   const router = useRouter();
+  const pathname = usePathname();
 
   // バリデーション
   const validateForm = () => {
@@ -217,6 +218,36 @@ export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: 
     router.push('/record/pl');
   };
 
+  // 初期描画時の処理
+  useEffect(() => {
+    const fetchData = async () => {
+      let newRecord: PlRecord | undefined;
+      try {
+        newRecord = await fetchGETRequestItem<PlRecord>({ endpoint: `/api/pl/read-item?id=${recordId}` });
+      } catch {
+        newRecord = undefined;
+      }
+      if (newRecord) {
+        setIsExistRecord(true);
+        setFormData(newRecord);
+        resetUpdatedFields();
+      }
+      const newMethods = await fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' });
+      const methodOptions = newMethods.map(
+        method => ({
+          value: method.id,
+          label: method.name
+        })
+      );
+      setMethodOptions(methodOptions);
+      setFormData(prev => ({
+        ...prev,
+        method: methodOptions[0].value
+      }));
+    };
+    fetchData();
+  }, [pathname]);
+
   // formData完成時の処理
   // note: postProcessAfterValidationで更新される値を依存配列に設定
   // note: フックは同値で更新しても発火しない（例: updatedFields.profitLossPips）
@@ -242,8 +273,6 @@ export function RecordForm({ recordId, isExistRecord, existPlRecord, methods }: 
         } else {
           await fetchPostRequest({ endpoint: '/api/pl/create-item', body: { item: formData } });
         }
-        // note: 念のためformDataを空にしてから遷移
-        resetFormData();
         router.push('/record/pl');
       }
     };

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { PlRecord, Method } from '@/types/type';
 import { processInputToDateTime } from '@/lib/calc';
-import { fetchGETRequest } from '@/lib/request';
+import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 
 const currencySymbols: { [key: string]: string } = {
@@ -42,19 +42,11 @@ export const ProfitLossRecordCard = () => {
   const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
-  const [pathName, setPathName] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  useEffect(() => {
-    setPathName(true);
-  }, [pathname]);
   useEffect(() => {
     const fetchData = async () => {
       const [newRecords, newMethods] = await Promise.all([
-        fetchGETRequest<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
-        fetchGETRequest<Method>({ endpoint: '/api/method/read-all-items' })
+        fetchGETRequestItems<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
+        fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
       ]);
       const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
       const formattedRecords = sortedRecords.map(item => ({
@@ -63,11 +55,11 @@ export const ProfitLossRecordCard = () => {
         exitedAt: processInputToDateTime({ dateTime: item.exitedAt, timeZone: item.timeZone })
       }));
       setPlRecords(formattedRecords);
-      const formattedMethods = await convertItemListToDict<Method>({ key: 'id', items: newMethods });
+      const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
       setMethods(formattedMethods);
     };
     fetchData();
-  }, [isClient, pathName]);
+  }, [pathname]);
   return (
     <>
       {plRecords.map((item, index) => (

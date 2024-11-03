@@ -20,7 +20,7 @@ interface fetchGetRequestProps {
   endpoint: string;
 }
 
-export const fetchGETRequest = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
+export const fetchGETRequestItems = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
   const response = await fetch(endpoint, {
     method: 'GET',
     headers: {'Content-Type': 'application/json'}
@@ -29,6 +29,19 @@ export const fetchGETRequest = async <T extends Record<string, Item>>({ endpoint
     throw new Error('APIリクエストが失敗しました');
   } else {
     const items: T[] = await response.json();
+    return items;
+  }
+};
+
+export const fetchGETRequestItem = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {'Content-Type': 'application/json'}
+  });
+  if (!response.ok) {
+    throw new Error('APIリクエストが失敗しました');
+  } else {
+    const items: T = await response.json();
     return items;
   }
 };
