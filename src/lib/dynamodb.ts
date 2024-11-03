@@ -185,3 +185,15 @@ export function sortItems<T extends Record<string, Item>>({ items, keyName, type
     throw new Error('ソートタイプの値が不正です。');
   }
 }
+
+export function convertItemListToDict<T extends Record<string, Item>>(
+  { key, items }: { key: string, items: T[]}
+) {
+  return items.reduce((acc, item) => {
+    if (typeof item[key] === 'string') {
+      const accKey = item[key];
+      acc[accKey] = item;
+    }
+    return acc;
+  }, {} as {[id: string]: T});
+}

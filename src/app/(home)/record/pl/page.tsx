@@ -1,13 +1,10 @@
 import Link from 'next/link';
-import { readAllItems, sortItems } from '@/lib/dynamodb';
 import { ProfitLossRecordCard } from '@/app/(home)/components/Card';
 import { DummyButton } from '@/app/(home)/components/Button';
 import { generateULID } from '@/lib/calc';
-import { PlRecord } from '@/types/type';
 
 export default async function Home() {
-  const items = await readAllItems<PlRecord>({ tableName: 'td-profit-loss' });
-  const sortedItems = sortItems({ items: items, keyName: 'id', type: 'DSC'});
+  // bug: 計算結果までキャッシュされてるのでボタンごとClientCompに
   const plRecordId = generateULID('pl-');
   return (
     <>
@@ -19,9 +16,7 @@ export default async function Home() {
         </div>
         <div className='flex-grow overflow-y-auto pb-16'>
           <div className='grid grid-cols-1 p-4 gap-4'>
-            {sortedItems.map((item, index) => (
-              <ProfitLossRecordCard key={index} {...item}/>
-            ))}
+            <ProfitLossRecordCard />
           </div>
         </div>
       </div>

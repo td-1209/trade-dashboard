@@ -1,45 +1,102 @@
 /* eslint-disable no-irregular-whitespace */
+'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { PlRecord, Method } from '@/types/type';
 import { processInputToDateTime } from '@/lib/calc';
-import { readItem } from '@/lib/dynamodb';
+import { fetchGETRequest } from '@/lib/request';
+import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 
-export const ProfitLossRecordCard = async (item: PlRecord) => {
-  const formattedEnteredAt = processInputToDateTime({ dateTime: item.enteredAt, timeZone: item.timeZone });
-  const formattedExitedAt = processInputToDateTime({ dateTime: item.exitedAt, timeZone: item.timeZone });
-  const method = await readItem<Method>({ partitionKey: { id: item.method }, tableName: 'td-method' });
-  const currencySymbols: { [key: string]: string } = {
-    USD: '$ ',
-    EUR: '€ ',
-    JPY: '¥ ',
-    GBP: '£ ',
-  };
+const currencySymbols: { [key: string]: string } = {
+  USD: '$ ',
+  EUR: '€ ',
+  JPY: '¥ ',
+  GBP: '£ ',
+};
+
+const initialPlRecords: PlRecord[] = [{
+  id: '',
+  enteredAt: '',
+  exitedAt: '',
+  timeZone: '+00:00',
+  baseCurrency: 'USD',
+  quoteCurrency: 'JPY',
+  currencyAmount: 0,
+  position: 'long',
+  entryPrice: 0,
+  exitPrice: 0,
+  profitLossPrice: 0,
+  profitLossPips: -0,
+  method: '',
+  isDemo: false,
+  memo: '',
+}];
+
+const initialMethods: {[id: string]: Method} = {
+  id: { id: '', name: '', detail: '', memo: '' }
+};
+
+export const ProfitLossRecordCard = () => {
+  const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
+  const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
+  const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+  const [pathName, setPathName] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  useEffect(() => {
+    setPathName(true);
+  }, [pathname]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const [newRecords, newMethods] = await Promise.all([
+        fetchGETRequest<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
+        fetchGETRequest<Method>({ endpoint: '/api/method/read-all-items' })
+      ]);
+      const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
+      const formattedRecords = sortedRecords.map(item => ({
+        ...item,
+        enteredAt: processInputToDateTime({ dateTime: item.enteredAt, timeZone: item.timeZone }),
+        exitedAt: processInputToDateTime({ dateTime: item.exitedAt, timeZone: item.timeZone })
+      }));
+      setPlRecords(formattedRecords);
+      const formattedMethods = await convertItemListToDict<Method>({ key: 'id', items: newMethods });
+      setMethods(formattedMethods);
+    };
+    fetchData();
+  }, [isClient, pathName]);
   return (
-    <Link href={`/record/pl/${item.id}`}>
-      <div className='bg-darkGray rounded-lg p-5'>
-        <p className='font-bold text-lightGray'>{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
-        <p className='text-xl font-bold text-lightGray'>{ formattedEnteredAt }　→　{ formattedExitedAt }</p>
-        <p className='font-bold text-lightGray'>{ item.memo }</p>
-        <p className={`font-bold ${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
-          { currencySymbols[item.quoteCurrency] }{ item.profitLossPrice } (pips { item.profitLossPips })
-        </p>
-        <p>
-          { currencySymbols[item.quoteCurrency] }{ item.entryPrice }
-          {
-            item.position.toLowerCase() === 'long' ? ' (買い)' :
-              item.position.toLowerCase() === 'short' ? ' (売り)' :
-                item.position
-          }　→　
-          { currencySymbols[item.quoteCurrency] }{ item.exitPrice }
-          {
-            item.position.toLowerCase() === 'long' ? ' (売り)' :
-              item.position.toLowerCase() === 'short' ? ' (買い)' :
-                item.position
-          }
-        </p>
-        <p>{ method.name }　{ item.currencyAmount } 通貨</p>
-      </div>
-    </Link>
+    <>
+      {plRecords.map((item, index) => (
+        <Link key={index} href={`/record/pl/${item.id}`}>
+          <div className='bg-darkGray rounded-lg p-5'>
+            <p className='font-bold text-lightGray'>{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
+            <p className='text-xl font-bold text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
+            <p className='font-bold text-lightGray'>{ item.memo }</p>
+            <p className={`font-bold ${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
+              { currencySymbols[item.quoteCurrency] }{ item.profitLossPrice } (pips { item.profitLossPips })
+            </p>
+            <p>
+              { currencySymbols[item.quoteCurrency] }{ item.entryPrice }
+              {
+                item.position.toLowerCase() === 'long' ? ' (買い)' :
+                  item.position.toLowerCase() === 'short' ? ' (売り)' :
+                    item.position
+              }　→　
+              { currencySymbols[item.quoteCurrency] }{ item.exitPrice }
+              {
+                item.position.toLowerCase() === 'long' ? ' (売り)' :
+                  item.position.toLowerCase() === 'short' ? ' (買い)' :
+                    item.position
+              }
+            </p>
+            <p>{ methods[item.method]?.name }　{ item.currencyAmount } 通貨</p>
+          </div>
+        </Link>
+      ))}
+    </>
   );
 };

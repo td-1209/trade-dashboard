@@ -8,8 +8,8 @@ interface fetchPostRequestProps {
 export const fetchPostRequest = async ({ endpoint, body }: fetchPostRequestProps) => {
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json',},
-    body: JSON.stringify(body),
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
   });
   if (!response.ok) {
     throw new Error('APIリクエストが失敗しました');
@@ -20,12 +20,15 @@ interface fetchGetRequestProps {
   endpoint: string;
 }
 
-export const fetchGETRequest = async ({ endpoint }: fetchGetRequestProps) => {
+export const fetchGETRequest = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
   const response = await fetch(endpoint, {
     method: 'GET',
-    headers: {'Content-Type': 'application/json',},
+    headers: {'Content-Type': 'application/json'}
   });
   if (!response.ok) {
     throw new Error('APIリクエストが失敗しました');
+  } else {
+    const items: T[] = await response.json();
+    return items;
   }
 };

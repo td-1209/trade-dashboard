@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { readItem } from '@/lib/dynamodb';
 import { PlRecord } from '@/types/type';
