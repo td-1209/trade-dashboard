@@ -290,8 +290,14 @@ export function RecordForm({ recordId }: RecordFormProps) {
             <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
           </div>
         </div>
-        <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
-        <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
+          </div>
+          <div className='flex-1'>
+            <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
+          </div>
+        </div>
         <div className='flex space-x-5'>
           <div className='flex-1'>
             <SelectForm label={'基軸'} name={'baseCurrency'} value={formData.baseCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.baseCurrency} />

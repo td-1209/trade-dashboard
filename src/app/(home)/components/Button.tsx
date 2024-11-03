@@ -25,7 +25,7 @@ interface TwinButtonsType {
 
 export const TwinButtons: React.FC<TwinButtonsType> = ({ leftLabel, rightLabel, leftAction, rightAction }) => {
   return (
-    <div className='flex justify-between w-full pt-5 pb-10 px-5'>
+    <div className='flex justify-between w-full px-5'>
       <button
         onClick={leftAction}
         className='w-[120px] rounded-lg py-2 m-4 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
