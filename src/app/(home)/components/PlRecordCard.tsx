@@ -38,7 +38,7 @@ const initialMethods: {[id: string]: Method} = {
   id: { id: '', name: '', detail: '', memo: '' }
 };
 
-export const ProfitLossRecordCard = () => {
+export const PlRecordCard = () => {
   const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
   const pathname = usePathname();
