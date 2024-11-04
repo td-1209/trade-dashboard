@@ -3,9 +3,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { PlRecord, Method } from '@/types/type';
-import { processInputToDateTime } from '@/lib/calc';
+import { convertDateTimeDisplayFormat } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 
@@ -41,27 +40,30 @@ const initialMethods: {[id: string]: Method} = {
 export const PlRecordCard = () => {
   const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
-  const pathname = usePathname();
   useEffect(() => {
     const fetchData = async () => {
       const [newRecords, newMethods] = await Promise.all([
         fetchGETRequestItems<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
         fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
       ]);
-      const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
-      const formattedRecords = sortedRecords.map(item => ({
-        ...item,
-        enteredAt: processInputToDateTime({ dateTime: item.enteredAt, timeZone: item.timeZone }),
-        exitedAt: processInputToDateTime({ dateTime: item.exitedAt, timeZone: item.timeZone })
-      }));
-      setPlRecords(formattedRecords);
-      const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
-      setMethods(formattedMethods);
+      if (newRecords) {
+        const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
+        const formattedRecords = sortedRecords.map(item => ({
+          ...item,
+          enteredAt: convertDateTimeDisplayFormat({ dateTime: item.enteredAt, timeZone: item.timeZone }),
+          exitedAt: convertDateTimeDisplayFormat({ dateTime: item.exitedAt, timeZone: item.timeZone })
+        }));
+        setPlRecords(formattedRecords);
+      }
+      if (newMethods) {
+        const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
+        setMethods(formattedMethods);
+      }
     };
     fetchData();
-  }, [pathname]);
+  }, []);
   return (
-    <>
+    <div className='grid grid-cols-1 px-4 gap-4'>
       {plRecords.map((item, index) => (
         <Link key={index} href={`/record/pl/${item.id}`}>
           <div className='bg-darkGray rounded-lg p-5'>
@@ -89,6 +91,6 @@ export const PlRecordCard = () => {
           </div>
         </Link>
       ))}
-    </>
+    </div>
   );
 };

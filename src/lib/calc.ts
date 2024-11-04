@@ -39,12 +39,12 @@ export function calculatePips({ quoteCurrency, entryPrice, exitPrice, position }
   }
 }
 
-interface processInputToDateTimeProps {
+interface convertDateTimeDisplayFormatProps {
   dateTime: string;
   timeZone: TimeZone;
 }
 
-export function processInputToDateTime({ dateTime, timeZone }: processInputToDateTimeProps) {
+export function convertDateTimeDisplayFormat({ dateTime, timeZone }: convertDateTimeDisplayFormatProps) {
   const parsedDate = parse(dateTime, 'yyyy-MM-dd_HH-mm', new Date());
   const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + timeZone;
   const dateTimeObject = new Date(isoString);

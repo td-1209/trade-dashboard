@@ -9,7 +9,7 @@ export const SingleButton: React.FC<SingleButtonType> = ({ label, action }) => {
   return (
     <button
       onClick={action}
-      className='w-[120px] rounded-lg py-2 mx-0 text-normalButtonText bg-normalButtonBG hover:bg-normalButtonBGTrans active:bg-normalButtonBGActive active:transform active:scale-99 transition-all duration-200'
+      className='w-[120px] rounded-lg py-2 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
     >
       {label}
     </button>
@@ -28,13 +28,13 @@ export const TwinButtons: React.FC<TwinButtonsType> = ({ leftLabel, rightLabel, 
     <div className='flex justify-between w-full px-5'>
       <button
         onClick={leftAction}
-        className='w-[120px] rounded-lg py-2 m-4 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        className='w-[120px] rounded-lg py-2 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
       >
         {leftLabel}
       </button>
       <button
         onClick={rightAction}
-        className='w-[120px] rounded-lg py-2 m-4 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        className='w-[120px] rounded-lg py-2 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
       >
         {rightLabel}
       </button>
@@ -50,16 +50,16 @@ interface FormTwinButtonsType {
 
 export const FormTwinButtons: React.FC<FormTwinButtonsType> = ({ leftLabel, rightLabel, leftAction }) => {
   return (
-    <div className='flex justify-between w-full pt-5 pb-10 px-5'>
+    <div className='flex justify-between w-full px-5'>
       <button
         onClick={leftAction}
-        className='w-[120px] rounded-lg py-2 m-4 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        className='w-[120px] rounded-lg py-2 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
       >
         {leftLabel}
       </button>
       <button
         type='submit'
-        className='w-[120px] rounded-lg py-2 m-4 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        className='w-[120px] rounded-lg py-2 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
       >
         {rightLabel}
       </button>

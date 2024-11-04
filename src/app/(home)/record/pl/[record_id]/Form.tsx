@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Item, PlRecord, Position, TimeZone, Currencies, Method } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
 import { calculatePips } from '@/lib/calc';
 import { fetchGETRequestItem, fetchGETRequestItems, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
+import { validateDateTime, validateFloat, validateInteger } from '@/lib/validate';
 
 const positionOptions: {
   value: Position;
@@ -87,72 +88,35 @@ export function RecordForm({ recordId }: RecordFormProps) {
   const [methodOptions, setMethodOptions] = useState<{ value: string; label: string; }[]>(initialMethodOptions);
   const [errors, setErrors] = useState<Errors>({});
   const router = useRouter();
-  const pathname = usePathname();
 
   // バリデーション
   const validateForm = () => {
     const newErrors: Errors = {};
     
     // 時間系
-    const regexDateTime = /^(\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])_(?:[01]\d|2[0-3])-[0-5]\d)$/;
-    const validateDateTime = (dateTime: string): string | null => {
-      if (!dateTime.trim()) {
-        return '未入力';
-      } else if (!regexDateTime.test(dateTime)) {
-        return 'フォーマットか数値範囲';
-      } else {
-        return null;
-      }
-    };
-    const enteredAtError = validateDateTime(formData.enteredAt);
-    const exitedAtError = validateDateTime(formData.exitedAt);
+    const enteredAtError = validateDateTime({ dateTime: formData.enteredAt});
+    const exitedAtError = validateDateTime({ dateTime: formData.exitedAt});
     if (enteredAtError) newErrors.enteredAt = enteredAtError;
     if (exitedAtError) newErrors.exitedAt = exitedAtError;
 
     // 数字系
-    // note: parseFloatは引数が整数のとき返り値も整数
-    const regexFloat = /^(-?[0-9]{1,10}\.[0-9]{3})$/;
-    const regexInteger = /^-?([1-9][0-9]{0,9}|0)$/;
-    const validateFloat = (name: string, value: string): string | null => {
-      const stringValue = value.trim();
-      if (!stringValue) {
-        return '未入力';
-      } else if (!regexFloat.test(stringValue)) {
-        return '小数点3桁';
-      } else {
-        const parsedValue = parseFloat(value);
-        setFormData(prev => ({...prev, [name]: parsedValue}));
-        return null;
-      }
-    };
-    const validateInteger = (name: string, value: string): string | null => {
-      const stringValue = value.trim();
-      if (!stringValue) {
-        return '未入力';
-      } else if (!regexInteger.test(stringValue)) {
-        return '整数';
-      } else {
-        const parsedValue = parseFloat(value);
-        setFormData(prev => ({...prev, [name]: parsedValue}));
-        return null;
-      }
-    };
-    const entryPriceError = validateFloat('entryPrice', formData.entryPrice.toString());
-    const exitPriceError = validateFloat('exitPrice', formData.exitPrice.toString());
-    const currencyAmountError = validateInteger('currencyAmount', formData.currencyAmount.toString());
-    const profitLossPriceError = validateInteger('profitLossPrice', formData.profitLossPrice.toString());
+    const entryPriceError = validateFloat({ name: 'entryPrice', value: formData.entryPrice.toString(), setFormData: setFormData});
+    const exitPriceError = validateFloat({ name: 'exitPrice', value: formData.exitPrice.toString(), setFormData: setFormData});
+    const currencyAmountError = validateInteger({ name: 'currencyAmount', value: formData.currencyAmount.toString(), setFormData: setFormData});
+    const profitLossPriceError = validateInteger({ name: 'profitLossPrice', value: formData.profitLossPrice.toString(), setFormData: setFormData});
     if (entryPriceError) newErrors.entryPrice = entryPriceError;
     if (exitPriceError) newErrors.exitPrice = exitPriceError;
     if (currencyAmountError) newErrors.currencyAmount = currencyAmountError;
     if (profitLossPriceError) newErrors.profitLossPrice = profitLossPriceError;
 
-    // ロジック系
-    // note: 他のバリデーションを優先
+    // ロジック系（他バリデーションを優先）
     if (Object.keys(newErrors).length === 0) {
+      // 通貨ペアが異なっているか検証
       if (formData.baseCurrency === formData.quoteCurrency) {
         newErrors.baseCurrency = '通貨ペア';
         newErrors.quoteCurrency = '通貨ペア';
       }
+      // 算出した損益のと入力された損益の符号が一致するか検証
       if (
         formData.position.trim() &&
         formData.entryPrice.toString().trim() &&
@@ -170,7 +134,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
         default:
           throw new Error('ポジションの値が不正です。');
         }
-        // note: 算出した損益のと入力された損益の符号が一致するか検証
         // 符号が共に正または負のとき変数は正
         const isValidSign = (sign * (formData.exitPrice - formData.entryPrice)) * formData.profitLossPrice > 0;
         if (!isValidSign) {
@@ -188,29 +151,24 @@ export function RecordForm({ recordId }: RecordFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // バリデーション通過後の必要処理
-  const postProcessAfterValidation = () => {
-    setFormData(prev => ({
-      ...prev,
-      profitLossPips: calculatePips({
-        quoteCurrency: formData.quoteCurrency,
-        entryPrice: formData.entryPrice,
-        exitPrice: formData.exitPrice,
-        position: formData.position
-      })
-    }));
-    setUpdatedFields(prev => ({
-      ...prev,
-      profitLossPips: true
-    }));
-  };
-
-  // フォームのハンドラ
-  // note: フォームのnameとfieldを一致させることで、setFormDataでの変更可能にしてる
+  // フォームの登録・キャンセル処理
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // バリデーション通過後の処理
     if (validateForm()) {
-      postProcessAfterValidation();
+      setFormData(prev => ({
+        ...prev,
+        profitLossPips: calculatePips({
+          quoteCurrency: formData.quoteCurrency,
+          entryPrice: formData.entryPrice,
+          exitPrice: formData.exitPrice,
+          position: formData.position
+        })
+      }));
+      setUpdatedFields(prev => ({
+        ...prev,
+        profitLossPips: true
+      }));
     }
   };
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -218,43 +176,43 @@ export function RecordForm({ recordId }: RecordFormProps) {
     router.push('/record/pl');
   };
 
-  // 初期描画時の処理
+  // 初回描画時の処理（遷移時）
   useEffect(() => {
     const fetchData = async () => {
-      let newRecord: PlRecord | undefined;
-      try {
-        newRecord = await fetchGETRequestItem<PlRecord>({ endpoint: `/api/pl/read-item?id=${recordId}` });
-      } catch {
-        newRecord = undefined;
-      }
+      const [newRecord, newMethods] = await Promise.all([
+        fetchGETRequestItem<PlRecord>({ endpoint: `/api/pl/read-item?id=${recordId}` }),
+        fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
+      ]);
+      // 記録が存在する場合は初期値に設定
       if (newRecord) {
         setIsExistRecord(true);
         setFormData(newRecord);
         resetUpdatedFields();
       }
-      const newMethods = await fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' });
-      const methodOptions = newMethods.map(
-        method => ({
-          value: method.id,
-          label: method.name
-        })
-      );
-      setMethodOptions(methodOptions);
-      setFormData(prev => ({
-        ...prev,
-        method: methodOptions[0].value
-      }));
+      // 手法を初期値に設定
+      if (newMethods) {
+        const methodOptions = newMethods.map(
+          method => ({
+            value: method.id,
+            label: method.name
+          })
+        );
+        setMethodOptions(methodOptions);
+        setFormData(prev => ({
+          ...prev,
+          method: methodOptions[0].value
+        }));
+      }
     };
     fetchData();
-  }, [pathname]);
+  }, []);
 
   // formData完成時の処理
-  // note: postProcessAfterValidationで更新される値を依存配列に設定
   // note: フックは同値で更新しても発火しない（例: updatedFields.profitLossPips）
   useEffect(() => {
     const updateDB = async () => {
+      // 依存配列の変数が修正されている場合のみ
       if (
-        // note: 依存配列の変数が修正されている場合のみ
         updatedFields.profitLossPips
       ) {
         // 既存インデックスを更新
@@ -277,6 +235,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
       }
     };
     updateDB();
+
+  // postProcessAfterValidationで更新される値を依存配列に設定
   }, [updatedFields.profitLossPips]);
 
   return (

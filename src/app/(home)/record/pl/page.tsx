@@ -9,9 +9,7 @@ export default async function Home() {
           <NewRecordButton prefix={'pl-'} path={'/record/pl/'} />
         </div>
         <div className='flex-grow overflow-y-auto pb-16'>
-          <div className='grid grid-cols-1 p-4 gap-4'>
-            <PlRecordCard />
-          </div>
+          <PlRecordCard />
         </div>
       </div>
     </>

@@ -21,27 +21,33 @@ interface fetchGetRequestProps {
 }
 
 export const fetchGETRequestItems = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
-  const response = await fetch(endpoint, {
-    method: 'GET',
-    headers: {'Content-Type': 'application/json'}
-  });
-  if (!response.ok) {
-    throw new Error('APIリクエストが失敗しました');
-  } else {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    });
+    if (!response.ok) {
+      throw new Error('APIリクエストが失敗しました');
+    }
     const items: T[] = await response.json();
     return items;
+  } catch {
+    return undefined;
   }
 };
 
 export const fetchGETRequestItem = async <T extends Record<string, Item>>({ endpoint }: fetchGetRequestProps) => {
-  const response = await fetch(endpoint, {
-    method: 'GET',
-    headers: {'Content-Type': 'application/json'}
-  });
-  if (!response.ok) {
-    throw new Error('APIリクエストが失敗しました');
-  } else {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    });
+    if (!response.ok) {
+      throw new Error('APIリクエストが失敗しました');
+    }
     const items: T = await response.json();
     return items;
+  } catch {
+    return undefined;
   }
 };
