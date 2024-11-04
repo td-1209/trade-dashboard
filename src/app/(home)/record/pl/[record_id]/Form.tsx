@@ -190,7 +190,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
         setFormData(newRecord);
         resetUpdatedFields();
       }
-      // 手法を初期値に設定
+      // 手法が存在する場合は初期値に設定
       if (newMethods) {
         const methodOptions = newMethods.map(
           method => ({
@@ -199,12 +199,16 @@ export function RecordForm({ recordId }: RecordFormProps) {
           })
         );
         setMethodOptions(methodOptions);
-        setFormData(prev => ({
-          ...prev,
-          method: methodOptions[0].value
-        }));
+      }
+      // 記録が存在せず手法が存在する場合は初期値に設定
+      if (newMethods) {
+        if (!newRecord) {
+          setFormData(prev => ({...prev, method: methodOptions[0].value}));
+          resetUpdatedFields();
+        }
       }
       setIsLoading(false);
+      // console.log(`before-items: ${JSON.stringify(newRecord, null, 2)}`);
     };
     fetchData();
   }, []);
@@ -228,9 +232,11 @@ export function RecordForm({ recordId }: RecordFormProps) {
             }, {} as Record<string, Item>);
           };
           const updatedFormData = getUpdatedFormData();
+          // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/pl/update-item', body: { id: recordId, item: updatedFormData } });
         // 新規インデックスを作成
         } else {
+          // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/pl/create-item', body: { item: formData } });
         }
         router.push('/record/pl');
