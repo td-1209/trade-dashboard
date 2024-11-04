@@ -8,12 +8,12 @@ import { convertDateTimeDisplayFormat } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 
-const currencySymbols: { [key: string]: string } = {
-  USD: '$ ',
-  EUR: '€ ',
-  JPY: '¥ ',
-  GBP: '£ ',
-};
+// const currencySymbols: { [key: string]: string } = {
+//   USD: '$',
+//   EUR: '€',
+//   JPY: '¥',
+//   GBP: '£',
+// };
 
 const initialPlRecords: PlRecord[] = [{
   id: '',
@@ -37,9 +37,10 @@ const initialMethods: {[id: string]: Method} = {
   id: { id: '', name: '', detail: '', memo: '' }
 };
 
-export const PlRecordCard = () => {
+export const PlRecordCards = () => {
   const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       const [newRecords, newMethods] = await Promise.all([
@@ -59,38 +60,65 @@ export const PlRecordCard = () => {
         const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
         setMethods(formattedMethods);
       }
+      setIsLoading(false);
     };
     fetchData();
   }, []);
-  return (
-    <div className='grid grid-cols-1 px-4 gap-4'>
-      {plRecords.map((item, index) => (
-        <Link key={index} href={`/record/pl/${item.id}`}>
-          <div className='bg-darkGray rounded-lg p-5'>
-            <p className='font-bold text-lightGray'>{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
-            <p className='text-xl font-bold text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
-            <p className='font-bold text-lightGray'>{ item.memo }</p>
-            <p className={`font-bold ${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
-              { currencySymbols[item.quoteCurrency] }{ item.profitLossPrice } (pips { item.profitLossPips })
-            </p>
-            <p>
-              { currencySymbols[item.quoteCurrency] }{ item.entryPrice }
-              {
-                item.position.toLowerCase() === 'long' ? ' (買い)' :
-                  item.position.toLowerCase() === 'short' ? ' (売り)' :
-                    item.position
-              }　→　
-              { currencySymbols[item.quoteCurrency] }{ item.exitPrice }
-              {
-                item.position.toLowerCase() === 'long' ? ' (売り)' :
-                  item.position.toLowerCase() === 'short' ? ' (買い)' :
-                    item.position
-              }
-            </p>
-            <p>{ methods[item.method]?.name }　{ item.currencyAmount } 通貨</p>
-          </div>
-        </Link>
-      ))}
-    </div>
+
+  if (isLoading) {
+    return (
+      <div className='grid grid-cols-1 px-4 gap-4'>
+        {[...Array(10)].map((_, index) => (
+          <ItemLoading key={index} />
+        ))}
+      </div>
+    );
+  } else {
+    return (
+      <div className='grid grid-cols-1 px-4 gap-4'>
+        {plRecords.map((item, index) => (
+          <Link key={index} href={`/record/pl/${item.id}`}>
+            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
+              <p className='text-xl font-bold text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
+              <p className={`font-bold ${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
+                結果　{ item.profitLossPips } (pips)
+              </p>
+              <p className='font-bold text-lightGray'>ペア　{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
+              <p className='font-bold text-lightGray'>手法　{ methods[item.method]?.name }</p>
+              <p className='font-bold text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
+              {/* <p>
+                { currencySymbols[item.quoteCurrency] }{ item.entryPrice }
+                {
+                  item.position.toLowerCase() === 'long' ? ' (買い)' :
+                    item.position.toLowerCase() === 'short' ? ' (売り)' :
+                      item.position
+                }　→　
+                { currencySymbols[item.quoteCurrency] }{ item.exitPrice }
+                {
+                  item.position.toLowerCase() === 'long' ? ' (売り)' :
+                    item.position.toLowerCase() === 'short' ? ' (買い)' :
+                      item.position
+                }
+              </p> */}
+            </div>
+          </Link>
+        ))}
+      </div>
+    );
+  }
+};
+
+const ItemLoading = () => {
+  return(
+    <>
+      <div role='status' className='bg-darkGray rounded-lg p-5 w-full h-[150px]'>
+        {/* <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[100px] mb-3"></div>
+        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
+        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
+        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
+        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
+        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div> */}
+      </div>
+    </>
   );
 };

@@ -86,6 +86,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
   ] = useFormData(initialItem);
   const [isExistRecord, setIsExistRecord] = useState<boolean>(false);
   const [methodOptions, setMethodOptions] = useState<{ value: string; label: string; }[]>(initialMethodOptions);
+  const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
   const router = useRouter();
 
@@ -203,6 +204,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
           method: methodOptions[0].value
         }));
       }
+      setIsLoading(false);
     };
     fetchData();
   }, []);
@@ -239,60 +241,74 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // postProcessAfterValidationで更新される値を依存配列に設定
   }, [updatedFields.profitLossPips]);
 
-  return (
-    <div className='px-5 py-5'>
-      <form onSubmit={handleSubmit}>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <SelectForm label={'ポジション'} name={'position'} value={formData.position} onChange={handleChangeSelectForm} options={positionOptions} errorMessage={errors.position} />
+  if (isLoading) {
+    return (
+      <div className='px-5 py-5'>
+        <ItemLoading />
+      </div>
+    );
+  } else {
+    return (
+      <div className='px-5 py-5'>
+        <form onSubmit={handleSubmit}>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <SelectForm label={'ポジション'} name={'position'} value={formData.position} onChange={handleChangeSelectForm} options={positionOptions} errorMessage={errors.position} />
+            </div>
+            <div className='flex-1'>
+              <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
+            </div>
           </div>
-          <div className='flex-1'>
-            <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
+            </div>
+            <div className='flex-1'>
+              <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
+            </div>
           </div>
-        </div>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <SelectForm label={'基軸'} name={'baseCurrency'} value={formData.baseCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.baseCurrency} />
+            </div>
+            <div className='flex-1'>
+              <SelectForm label={'決済'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
+            </div>
           </div>
-          <div className='flex-1'>
-            <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'新規'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.entryPrice} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'決済'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.exitPrice} />
+            </div>
           </div>
-        </div>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <SelectForm label={'基軸'} name={'baseCurrency'} value={formData.baseCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.baseCurrency} />
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'通貨'} name={'currencyAmount'} value={formData.currencyAmount.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyAmount} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'0.999'} errorMessage={errors.profitLossPrice} />
+            </div>
           </div>
-          <div className='flex-1'>
-            <SelectForm label={'決済'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <SelectForm label={'手法'} name={'method'} value={formData.method} onChange={handleChangeSelectForm} options={methodOptions} errorMessage={errors.method} />
+            </div>
+            <div className='flex-1'>
+              <RadioForm label={'デモ'} name={'isDemo'} value={formData.isDemo} onChange={handleChangeRadioForm} options={isDemoOptions} errorMessage={errors.isDemo} />
+            </div>
           </div>
-        </div>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <NumberForm label={'新規'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.entryPrice} />
-          </div>
-          <div className='flex-1'>
-            <NumberForm label={'決済'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.exitPrice} />
-          </div>
-        </div>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <NumberForm label={'通貨'} name={'currencyAmount'} value={formData.currencyAmount.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyAmount} />
-          </div>
-          <div className='flex-1'>
-            <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'0.999'} errorMessage={errors.profitLossPrice} />
-          </div>
-        </div>
-        <div className='flex space-x-5'>
-          <div className='flex-1'>
-            <SelectForm label={'手法'} name={'method'} value={formData.method} onChange={handleChangeSelectForm} options={methodOptions} errorMessage={errors.method} />
-          </div>
-          <div className='flex-1'>
-            <RadioForm label={'デモ'} name={'isDemo'} value={formData.isDemo} onChange={handleChangeRadioForm} options={isDemoOptions} errorMessage={errors.isDemo} />
-          </div>
-        </div>
-        <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
-        <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
-      </form>
-    </div>
-  );
+          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
+          <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
+        </form>
+      </div>
+    );
+  }
 }
+
+const ItemLoading = () => {
+  return(
+    <></>
+  );
+};
