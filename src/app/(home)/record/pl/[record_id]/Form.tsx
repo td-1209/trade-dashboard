@@ -62,7 +62,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     position: 'long',
     entryPrice: 999.998,
     exitPrice: 999.999,
-    profitLossPrice: 99999,
+    profitLossPrice: 999,
     profitLossPips: -999.999,
     method: '',
     isDemo: false,
@@ -267,10 +267,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.enteredAt} />
+              <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.enteredAt} />
             </div>
             <div className='flex-1'>
-              <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01T01:01:00+09:00'} errorMessage={errors.exitedAt} />
+              <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-30_01-01'} errorMessage={errors.exitedAt} />
             </div>
           </div>
           <div className='flex space-x-5'>
@@ -283,10 +283,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <NumberForm label={'新規'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.entryPrice} />
+              <NumberForm label={'新規'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.998'} errorMessage={errors.entryPrice} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'決済'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'120.999'} errorMessage={errors.exitPrice} />
+              <NumberForm label={'決済'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.999'} errorMessage={errors.exitPrice} />
             </div>
           </div>
           <div className='flex space-x-5'>
@@ -294,7 +294,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <NumberForm label={'通貨'} name={'currencyAmount'} value={formData.currencyAmount.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyAmount} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'0.999'} errorMessage={errors.profitLossPrice} />
+              <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999'} errorMessage={errors.profitLossPrice} />
             </div>
           </div>
           <div className='flex space-x-5'>

@@ -45,10 +45,15 @@ interface convertDateTimeDisplayFormatProps {
 }
 
 export function convertDateTimeDisplayFormat({ dateTime, timeZone }: convertDateTimeDisplayFormatProps) {
-  const parsedDate = parse(dateTime, 'yyyy-MM-dd_HH-mm', new Date());
-  const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + timeZone;
-  const dateTimeObject = new Date(isoString);
-  const jstDateTime = toZonedTime(dateTimeObject, 'Asia/Tokyo');
-  const jstString = format(jstDateTime, 'yy.MM.dd.E', {locale: ja});
+  let jstString: string;
+  try {
+    const parsedDate = parse(dateTime, 'yyyy-MM-dd_HH-mm', new Date());
+    const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + timeZone;
+    const dateTimeObject = new Date(isoString);
+    const jstDateTime = toZonedTime(dateTimeObject, 'Asia/Tokyo');
+    jstString = format(jstDateTime, 'yy.MM.dd.E', {locale: ja});
+  } catch  {
+    jstString = '日付エラー';
+  }
   return jstString;
 }
