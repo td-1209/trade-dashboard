@@ -44,7 +44,7 @@ export const RecordCards = () => {
           <Link key={index} href={`/method/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
               <p className='text-xl text-lightGray'>{ item.name }</p>
-              <p className='line-clamp-3'>{ item.detail }</p>
+              <p className='text-lightGray line-clamp-3'>{ item.detail }</p>
               <p className='text-lightGray line-clamp-1'>{ item.memo }</p>
             </div>
           </Link>
