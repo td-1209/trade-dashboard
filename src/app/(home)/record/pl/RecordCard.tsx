@@ -37,7 +37,7 @@ const initialMethods: {[id: string]: Method} = {
   id: { id: '', name: '', detail: '', memo: '' }
 };
 
-export const PlRecordCards = () => {
+export const RecordCards = () => {
   const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,15 +110,6 @@ export const PlRecordCards = () => {
 
 const ItemLoading = () => {
   return(
-    <>
-      <div role='status' className='bg-darkGray rounded-lg p-5 w-full h-[150px]'>
-        {/* <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[100px] mb-3"></div>
-        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
-        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
-        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
-        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div>
-        <div className="h-2 rounded-md bg-lightGray animate-pulse max-w-[300px] mb-3"></div> */}
-      </div>
-    </>
+    <></>
   );
 };

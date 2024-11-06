@@ -1,5 +1,5 @@
 import { NewRecordButton } from '@/app/(home)/components/NewRecordButton';
-import { PlRecordCards } from '@/app/(home)/components/PlRecordCard';
+import { RecordCards } from '@/app/(home)/record/pl/RecordCard';
 
 export default async function Home() {
   return (
@@ -9,7 +9,7 @@ export default async function Home() {
           <NewRecordButton prefix={'pl-'} path={'/record/pl/'} />
         </div>
         <div className='flex-grow overflow-y-auto pb-16'>
-          <PlRecordCards />
+          <RecordCards />
         </div>
       </div>
     </>

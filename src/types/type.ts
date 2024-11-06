@@ -24,6 +24,15 @@ export interface PlRecord extends Record<string, Item> {
   memo: string;
 }
 
+export interface CfRecord extends Record<string, Item> {
+  id: string;
+  executedAt: string;
+  timeZone: TimeZone;
+  quoteCurrency: string;
+  price: number;
+  memo: string;
+}
+
 export interface Method extends Record<string, Item> {
   id: string;
   name: string;
