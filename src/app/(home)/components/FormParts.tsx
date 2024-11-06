@@ -4,7 +4,7 @@ interface TextFormProps {
   label: string;
   name: string;
   value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   placeholder?: string;
   errorMessage?: string;
 }
@@ -28,6 +28,37 @@ export const TextForm: React.FC<TextFormProps> = ({
         value={value}
         onChange={onChange}
         className='block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white'
+        placeholder={placeholder}
+      />
+      <div>
+        {errorMessage? (
+          <p className='text-sm text-negative'>{errorMessage}</p>
+        ) : (
+          <p className='text-sm text-transparent'>&#8203;</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const TextAreaForm: React.FC<TextFormProps> = ({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+  errorMessage
+}) => {
+  return (
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray'>
+        {label}
+      </label>
+      <textarea
+        name={name}
+        value={value}
+        onChange={onChange}
+        className='block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y min-h-[100px]'
         placeholder={placeholder}
       />
       <div>

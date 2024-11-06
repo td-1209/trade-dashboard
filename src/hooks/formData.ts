@@ -8,7 +8,7 @@ type FormDataHookReturn<T extends Record<string, Item>> = [
   {
     setFormData: React.Dispatch<React.SetStateAction<T>>;
     setUpdatedFields: React.Dispatch<React.SetStateAction<UpdatedFields<T>>>;
-    handleChangeStringForm: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleChangeStringForm: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     handleChangeNumberForm: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleChangeSelectForm: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     handleChangeRadioForm: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,7 +22,7 @@ export function useFormData<T extends Record<string, Item>>(initialData: T): For
     Object.keys(initialData).reduce((acc, key) => ({...acc, [key]: false}), {} as UpdatedFields<T>)
   );
 
-  const handleChangeStringForm = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeStringForm = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({...prev, [name]: value}));
     setUpdatedFields(prev => ({...prev, [name]: true}));
