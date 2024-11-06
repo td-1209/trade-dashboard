@@ -57,11 +57,11 @@ export const RecordCards = () => {
         {CfRecords.map((item, index) => (
           <Link key={index} href={`/record/cf/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[110px]'>
-              <p className='text-xl font-bold text-lightGray'>{ item.executedAt }</p>
-              <p className={`font-bold ${ item.price >= 0 ? 'text-negative' : 'text-positive' }`}>
+              <p className='text-xl text-lightGray'>{ item.executedAt }</p>
+              <p className={`${ item.price >= 0 ? 'text-negative' : 'text-positive' }`}>
                 { item.price >= 0 ? '入金' : '出金' }　{ currencySymbols[item.quoteCurrency] }{ item.price }
               </p>
-              <p className='font-bold text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
+              <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
             </div>
           </Link>
         ))}

@@ -2,14 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  MarketIconButton,
+  StrategyIconButton,
+  ProfitLossIconButton,
+  CashFlowIconButton,
+  AnalysisIconButton,
+  MethodIconButton
+} from '@/app/(home)/components/Button';
 
 const tabs = [
-  { name: '市場', path: '/market' },
-  { name: '戦略', path: '/strategy' },
-  { name: '損益', path: '/record/pl' },
-  { name: '出入', path: '/record/cf' },
-  { name: '分析', path: '/analysis' },
-  { name: '手法', path: '/method' },
+  { name: '市場', path: '/market', icon: <MarketIconButton /> },
+  { name: '戦略', path: '/strategy', icon: <StrategyIconButton /> },
+  { name: '損益', path: '/record/pl', icon: <ProfitLossIconButton /> },
+  { name: '出入', path: '/record/cf', icon: <CashFlowIconButton /> },
+  { name: '分析', path: '/analysis', icon: <AnalysisIconButton /> },
+  { name: '手法', path: '/method', icon: <MethodIconButton /> },
 ];
 
 export const TabBar = () => {
@@ -23,8 +31,9 @@ export const TabBar = () => {
           {tabs.map((tab) => (
             <li key={tab.path}>
               <Link href={tab.path}>
-                <span className={`py-6 block ${pathname === tab.path ? 'text-secondary' : 'text-lightGray'}`}>
-                  {tab.name}
+                <span className={`pt-3 pb-7 flex flex-col items-center justify-center ${pathname === tab.path ? 'text-secondary' : 'text-lightGray'}`}>
+                  {tab.icon}
+                  {/* {tab.name} */}
                 </span>
               </Link>
             </li>

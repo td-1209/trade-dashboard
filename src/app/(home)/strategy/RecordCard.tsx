@@ -53,11 +53,11 @@ export const RecordCards = () => {
         {Strategies.map((item, index) => (
           <Link key={index} href={`/strategy/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
-              <p className='text-xl font-bold text-lightGray'>{ item.startedAt }　→　{ item.endedAt }</p>
-              <p className='font-bold line-clamp-1'>戦略　{ item.strategy }</p>
-              <p className='font-bold line-clamp-1'>結果　{ item.result }</p>
-              <p className='font-bold line-clamp-1'>振返　{ item.retrospective }</p>
-              <p className='font-bold text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
+              <p className='text-xl text-lightGray'>{ item.startedAt }　→　{ item.endedAt }</p>
+              <p className='line-clamp-1'>戦略　{ item.strategy }</p>
+              <p className='line-clamp-1'>結果　{ item.result }</p>
+              <p className='line-clamp-1'>振返　{ item.retrospective }</p>
+              <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
             </div>
           </Link>
         ))}
