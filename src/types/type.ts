@@ -39,3 +39,14 @@ export interface Method extends Record<string, Item> {
   detail: string;
   memo: string;
 }
+
+export interface Strategy extends Record<string, Item> {
+  id: string;
+  startedAt: string;
+  endedAt: string;
+  timeZone: TimeZone;
+  strategy: string;
+  result: string;
+  retrospective: string;
+  memo: string;
+}

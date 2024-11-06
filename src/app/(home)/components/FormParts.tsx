@@ -58,7 +58,7 @@ export const TextAreaForm: React.FC<TextFormProps> = ({
         name={name}
         value={value}
         onChange={onChange}
-        className='block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y min-h-[100px]'
+        className='block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y min-h-[80px]'
         placeholder={placeholder}
       />
       <div>
