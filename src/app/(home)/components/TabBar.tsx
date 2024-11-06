@@ -13,11 +13,11 @@ import {
 
 const tabs = [
   { name: '市場', path: '/market', icon: <MarketIconButton /> },
-  { name: '戦略', path: '/strategy', icon: <StrategyIconButton /> },
-  { name: '損益', path: '/record/pl', icon: <ProfitLossIconButton /> },
-  { name: '出入', path: '/record/cf', icon: <CashFlowIconButton /> },
-  { name: '分析', path: '/analysis', icon: <AnalysisIconButton /> },
   { name: '手法', path: '/method', icon: <MethodIconButton /> },
+  { name: '出入', path: '/record/cf', icon: <CashFlowIconButton /> },
+  { name: '損益', path: '/record/pl', icon: <ProfitLossIconButton /> },
+  { name: '分析', path: '/analysis', icon: <AnalysisIconButton /> },
+  { name: '戦略', path: '/strategy', icon: <StrategyIconButton /> },
 ];
 
 export const TabBar = () => {
