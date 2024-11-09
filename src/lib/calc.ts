@@ -57,3 +57,30 @@ export function convertDateTimeDisplayFormat({ dateTime, timeZone }: convertDate
   }
   return jstString;
 }
+
+interface calculateMaxLots {
+  tradingCapital: number;
+  entryPrice: number;
+  exitPrice: number;
+  currencyAmountPerLot: number;
+  maintenanceMarginRatio?: number;
+}
+
+export function calculateMaxLotSize({ tradingCapital, entryPrice, exitPrice, currencyAmountPerLot, maintenanceMarginRatio = 20 }: calculateMaxLots) {
+  const maxLotSize = tradingCapital/((maintenanceMarginRatio*entryPrice)+currencyAmountPerLot*Math.abs(entryPrice-exitPrice));
+  return maxLotSize;
+}
+
+interface calculateRequiredMargin {
+  entryPrice: number;
+  currencyAmountPerLot: number;
+  maintenanceMarginRatio?: number;
+  lotSize: number;
+  leverage?: number;
+}
+
+export function calculateRequiredMargin({ entryPrice, currencyAmountPerLot, lotSize, leverage = 1000 }: calculateRequiredMargin) {
+  const currencyAmount = currencyAmountPerLot*lotSize;
+  const requiredMargin = currencyAmount/leverage*entryPrice;
+  return requiredMargin;
+}

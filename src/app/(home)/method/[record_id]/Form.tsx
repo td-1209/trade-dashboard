@@ -108,7 +108,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
       <div className='px-5 py-5'>
         <form onSubmit={handleSubmit}>
           <TextForm label={'名前'} name={'name'} value={formData.name} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.name} />
-          <TextAreaForm label={'詳細'} name={'detail'} value={formData.detail} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.detail} />
+          <TextAreaForm label={'詳細'} name={'detail'} value={formData.detail} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.detail} height={400} />
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>

@@ -7,6 +7,7 @@ interface TextFormProps {
   onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   placeholder?: string;
   errorMessage?: string;
+  height?: number;
 }
 
 export const TextForm: React.FC<TextFormProps> = ({
@@ -47,7 +48,8 @@ export const TextAreaForm: React.FC<TextFormProps> = ({
   value,
   onChange,
   placeholder,
-  errorMessage
+  errorMessage,
+  height = 80
 }) => {
   return (
     <div className='py-1'>
@@ -58,7 +60,8 @@ export const TextAreaForm: React.FC<TextFormProps> = ({
         name={name}
         value={value}
         onChange={onChange}
-        className='block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y min-h-[80px]'
+        className={'block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y]'}
+        style={{ height: `${height}px` }}
         placeholder={placeholder}
       />
       <div>

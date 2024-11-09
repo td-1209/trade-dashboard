@@ -8,13 +8,15 @@ import {
   ProfitLossIconButton,
   CashFlowIconButton,
   AnalysisIconButton,
-  MethodIconButton
+  MethodIconButton,
+  CalcIconButton
 } from '@/app/(home)/components/Button';
 
 const tabs = [
-  { name: '市場', path: '/market', icon: <MarketIconButton /> },
   { name: '手法', path: '/method', icon: <MethodIconButton /> },
   { name: '出入', path: '/record/cf', icon: <CashFlowIconButton /> },
+  { name: '市場', path: '/market', icon: <MarketIconButton /> },
+  { name: '計算', path: '/calc', icon: <CalcIconButton /> },
   { name: '損益', path: '/record/pl', icon: <ProfitLossIconButton /> },
   { name: '分析', path: '/analysis', icon: <AnalysisIconButton /> },
   { name: '戦略', path: '/strategy', icon: <StrategyIconButton /> },

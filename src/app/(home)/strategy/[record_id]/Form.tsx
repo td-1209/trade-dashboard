@@ -126,7 +126,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <TextForm label={'実行'} name={'endedAt'} value={formData.endedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.endedAt} />
             </div>
           </div>
-          <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.strategy} />
+          <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.strategy} height={400} />
           <TextAreaForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.result} />
           <TextAreaForm label={'ふりかえり'} name={'retrospective'} value={formData.retrospective} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.retrospective} />
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
