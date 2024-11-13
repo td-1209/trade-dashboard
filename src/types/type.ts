@@ -15,6 +15,8 @@ export interface PlRecord extends Record<string, Item> {
   quoteCurrency: Currencies;
   currencyAmount: number;
   position: Position;
+  initialUpperExitPrice: number;
+  initialLowerExitPrice: number;
   entryPrice: number;
   exitPrice: number;
   profitLossPrice: number;

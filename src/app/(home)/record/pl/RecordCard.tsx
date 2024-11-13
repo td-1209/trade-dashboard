@@ -24,6 +24,8 @@ const initialPlRecords: PlRecord[] = [{
   quoteCurrency: 'JPY',
   currencyAmount: 0,
   position: 'long',
+  initialUpperExitPrice: 0,
+  initialLowerExitPrice: 0,
   entryPrice: 0,
   exitPrice: 0,
   profitLossPrice: 0,

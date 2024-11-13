@@ -60,6 +60,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
     quoteCurrency: 'JPY',
     currencyAmount: 1000,
     position: 'long',
+    initialUpperExitPrice: 999.999,
+    initialLowerExitPrice: 999.997,
     entryPrice: 999.998,
     exitPrice: 999.999,
     profitLossPrice: 999,
@@ -101,10 +103,14 @@ export function RecordForm({ recordId }: RecordFormProps) {
     if (exitedAtError) newErrors.exitedAt = exitedAtError;
 
     // 数字系
+    const initialUpperExitPriceError = validateFloat({ name: 'initialUpperExitPrice', value: formData.initialUpperExitPrice.toString(), setFormData: setFormData});
+    const initialLowerExitPriceError = validateFloat({ name: 'initialLowerExitPrice', value: formData.initialLowerExitPrice.toString(), setFormData: setFormData});
     const entryPriceError = validateFloat({ name: 'entryPrice', value: formData.entryPrice.toString(), setFormData: setFormData});
     const exitPriceError = validateFloat({ name: 'exitPrice', value: formData.exitPrice.toString(), setFormData: setFormData});
     const currencyAmountError = validateInteger({ name: 'currencyAmount', value: formData.currencyAmount.toString(), setFormData: setFormData});
     const profitLossPriceError = validateInteger({ name: 'profitLossPrice', value: formData.profitLossPrice.toString(), setFormData: setFormData});
+    if (initialUpperExitPriceError) newErrors.initialUpperExitPrice = initialUpperExitPriceError;
+    if (initialLowerExitPriceError) newErrors.initialLowerExitPrice = initialLowerExitPriceError;
     if (entryPriceError) newErrors.entryPrice = entryPriceError;
     if (exitPriceError) newErrors.exitPrice = exitPriceError;
     if (currencyAmountError) newErrors.currencyAmount = currencyAmountError;
@@ -142,6 +148,21 @@ export function RecordForm({ recordId }: RecordFormProps) {
           newErrors.entryPrice = '符号の整合性';
           newErrors.exitPrice = '符号の整合性';
           newErrors.profitLossPrice = '符号の整合性';
+        }
+      }
+      // 高い方の決済額＞注文額＞低い方の決済額
+      if (
+        formData.entryPrice.toString().trim() &&
+        formData.initialUpperExitPrice.toString().trim() &&
+        formData.initialLowerExitPrice.toString().trim()
+      ) {
+        if (formData.entryPrice > formData.initialUpperExitPrice) {
+          newErrors.entryPrice = '注文/決済の大小';
+          newErrors.initialUpperExitPrice = '注文/決済の大小';
+        }
+        if (formData.entryPrice < formData.initialLowerExitPrice) {
+          newErrors.entryPrice = '注文/決済の大小';
+          newErrors.initialLowerExitPrice = '注文/決済の大小';
         }
       }
     }
@@ -279,6 +300,14 @@ export function RecordForm({ recordId }: RecordFormProps) {
             </div>
             <div className='flex-1'>
               <SelectForm label={'決済'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
+            </div>
+          </div>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'上決済ライン'} name={'initialUpperExitPrice'} value={formData.initialUpperExitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.998'} errorMessage={errors.initialUpperExitPrice} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'下決済ライン'} name={'initialLowerExitPrice'} value={formData.initialLowerExitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.999'} errorMessage={errors.initialLowerExitPrice} />
             </div>
           </div>
           <div className='flex space-x-5'>
