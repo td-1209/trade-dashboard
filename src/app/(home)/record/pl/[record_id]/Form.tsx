@@ -33,11 +33,14 @@ const currencyOptions: {
   label: Currencies;
 }[] = [
   { value: 'USD', label: 'USD' },
+  { value: 'EUR', label: 'EUR' },
   { value: 'JPY', label: 'JPY' },
   { value: 'GBP', label: 'GBP' },
   { value: 'AUD', label: 'AUD' },
-  { value: 'EUR', label: 'EUR' },
+  { value: 'MXN', label: 'MXN' },
   { value: 'NZD', label: 'NZD' },
+  { value: 'CAD', label: 'CAD' },
+  { value: 'CHF', label: 'CHF' },
 ];
 
 const isDemoOptions = [

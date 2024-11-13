@@ -23,12 +23,8 @@ const currencyOptions: {
   value: Currencies;
   label: Currencies;
 }[] = [
-  { value: 'USD', label: 'USD' },
   { value: 'JPY', label: 'JPY' },
-  { value: 'GBP', label: 'GBP' },
-  { value: 'AUD', label: 'AUD' },
-  { value: 'EUR', label: 'EUR' },
-  { value: 'NZD', label: 'NZD' },
+  { value: 'USD', label: 'USD' },
 ];
 
 interface RecordFormProps {

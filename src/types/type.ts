@@ -1,5 +1,4 @@
-export type Currencies = 'USD' | 'JPY' | 'GBP' | 'AUD' | 'EUR' | 'NZD';
-
+export type Currencies = 'USD' | 'EUR' | 'JPY' | 'GBP' | 'AUD' | 'MXN' | 'NZD' | 'CAD' | 'CHF' | 'ZAR';
 export type Position = 'long' | 'short';
 
 export type TimeZone = '+00:00' | '+02:00' | '+03:00' | '+09:00';
