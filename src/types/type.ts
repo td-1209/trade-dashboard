@@ -12,7 +12,8 @@ export interface PlRecord extends Record<string, Item> {
   timeZone: TimeZone;
   baseCurrency: Currencies;
   quoteCurrency: Currencies;
-  currencyAmount: number;
+  currencyLot: number;
+  currencyAmountPerLot: number;
   position: Position;
   initialUpperExitPrice: number;
   initialLowerExitPrice: number;

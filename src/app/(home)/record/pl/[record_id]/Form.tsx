@@ -67,7 +67,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
     timeZone: '+02:00',
     baseCurrency: 'USD',
     quoteCurrency: 'JPY',
-    currencyAmount: 1000,
+    currencyLot: 0.999,
+    currencyAmountPerLot: 100000,
     position: 'long',
     initialUpperExitPrice: 999.999,
     initialLowerExitPrice: 999.997,
@@ -117,13 +118,15 @@ export function RecordForm({ recordId }: RecordFormProps) {
     const initialLowerExitPriceError = validateFloat({ name: 'initialLowerExitPrice', value: formData.initialLowerExitPrice.toString(), setFormData: setFormData});
     const entryPriceError = validateFloat({ name: 'entryPrice', value: formData.entryPrice.toString(), setFormData: setFormData});
     const exitPriceError = validateFloat({ name: 'exitPrice', value: formData.exitPrice.toString(), setFormData: setFormData});
-    const currencyAmountError = validateInteger({ name: 'currencyAmount', value: formData.currencyAmount.toString(), setFormData: setFormData});
+    const currencyLotError = validateFloat({ name: 'currencyLot', value: formData.currencyLot.toString(), setFormData: setFormData});
+    const currencyAmountPerLotError = validateInteger({ name: 'currencyAmountPerLot', value: formData.currencyAmountPerLot.toString(), setFormData: setFormData});
     const profitLossPriceError = validateInteger({ name: 'profitLossPrice', value: formData.profitLossPrice.toString(), setFormData: setFormData});
     if (initialUpperExitPriceError) newErrors.initialUpperExitPrice = initialUpperExitPriceError;
     if (initialLowerExitPriceError) newErrors.initialLowerExitPrice = initialLowerExitPriceError;
     if (entryPriceError) newErrors.entryPrice = entryPriceError;
     if (exitPriceError) newErrors.exitPrice = exitPriceError;
-    if (currencyAmountError) newErrors.currencyAmount = currencyAmountError;
+    if (currencyLotError) newErrors.currencyLot = currencyLotError;
+    if (currencyAmountPerLotError) newErrors.currencyAmountPerLot = currencyAmountPerLotError;
     if (profitLossPriceError) newErrors.profitLossPrice = profitLossPriceError;
 
     // ロジック系（他バリデーションを優先）
@@ -327,7 +330,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <NumberForm label={'通貨'} name={'currencyAmount'} value={formData.currencyAmount.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyAmount} />
+              <NumberForm label={'通貨数/ロット'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} placeholder={'999'} errorMessage={errors.currencyAmountPerLot} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'ロット'} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyLot} />
             </div>
             <div className='flex-1'>
               <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999'} errorMessage={errors.profitLossPrice} />
