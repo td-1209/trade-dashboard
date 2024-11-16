@@ -9,6 +9,7 @@ import { calculatePips } from '@/lib/calc';
 import { fetchGETRequestItem, fetchGETRequestItems, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
 import { validateDateTime, validateFloat, validateInteger } from '@/lib/validate';
+import { sortItems } from '@/lib/dynamodb';
 
 const positionOptions: {
   value: Position;
@@ -210,7 +211,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
       ]);
       // 手法が存在する場合は手法リストを更新
       if (newMethods) {
-        const methodOptions = newMethods.map(
+        const sortedNewMethods = sortItems<Method>({ items: newMethods, keyName: 'name', type: 'ASC'});
+        const methodOptions = sortedNewMethods.map(
           method => ({
             value: method.id,
             label: method.name

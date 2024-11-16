@@ -21,7 +21,7 @@ export const RecordCards = () => {
     const fetchData = async () => {
       const newMethods = await fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' });
       if (newMethods) {
-        const sortedRecords = sortItems<Method>({ items: newMethods, keyName: 'id', type: 'DSC'});
+        const sortedRecords = sortItems<Method>({ items: newMethods, keyName: 'name', type: 'ASC'});
         setMethods(sortedRecords);
       }
       setIsLoading(false);
