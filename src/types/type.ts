@@ -22,6 +22,7 @@ export interface PlRecord extends Record<string, Item> {
   profitLossPips: number;
   method: string;
   isDemo: boolean;
+  isSettled: boolean;
   memo: string;
 }
 

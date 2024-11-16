@@ -32,6 +32,7 @@ const initialPlRecords: PlRecord[] = [{
   profitLossPips: -0,
   method: '',
   isDemo: false,
+  isSettled: false,
   memo: '',
 }];
 
@@ -81,10 +82,18 @@ export const RecordCards = () => {
         {plRecords.map((item, index) => (
           <Link key={index} href={`/record/pl/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
-              <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
-              <p className={`${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
-                結果　{ item.profitLossPips } (pips)
-              </p>
+              {item.isSettled ? (
+                <>
+                  <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
+                  <p className={`${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
+                    結果　{ item.profitLossPips } (pips)
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className='text-xl text-lightGray'>{ item.enteredAt }　→　取引中</p>
+                </>
+              )}
               <p className='text-lightGray'>ペア　{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
               <p className='text-lightGray'>手法　{ methods[item.method]?.name }</p>
               <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>

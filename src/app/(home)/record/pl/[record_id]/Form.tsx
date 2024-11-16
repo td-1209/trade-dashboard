@@ -49,6 +49,11 @@ const isDemoOptions = [
   { value: false, label: 'オフ' }
 ];
 
+const isSettledOptions = [
+  { value: true, label: '清算済' },
+  { value: false, label: '取引中' }
+];
+
 interface RecordFormProps {
   recordId: string;
 }
@@ -72,6 +77,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     profitLossPips: -999.999,
     method: '',
     isDemo: false,
+    isSettled: false,
     memo: '',
   };
   const initialMethodOptions = [
@@ -336,6 +342,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
             </div>
           </div>
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
+          <RadioForm label={'決済済み'} name={'isSettled'} value={formData.isSettled} onChange={handleChangeRadioForm} options={isSettledOptions} errorMessage={errors.isSettled} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>
       </div>
