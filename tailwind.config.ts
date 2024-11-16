@@ -23,8 +23,8 @@ export const palette = {
     black: '#212121',
     blackTrans: '#212121F7',
     blackActive: '#000000',
-    positive: '#5BAD92',
-    negative: '#EA0032'
+    positive: '#1F8D49',
+    negative: '#D12D4F'
   }
 };
 

@@ -120,16 +120,16 @@ export function RecordForm({ recordId }: RecordFormProps) {
         <form onSubmit={handleSubmit}>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <TextForm label={'実行'} name={'startedAt'} value={formData.startedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.startedAt} />
+              <TextForm label={'開始日'} name={'startedAt'} value={formData.startedAt} onChange={handleChangeStringForm} errorMessage={errors.startedAt} />
             </div>
             <div className='flex-1'>
-              <TextForm label={'実行'} name={'endedAt'} value={formData.endedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.endedAt} />
+              <TextForm label={'終了日'} name={'endedAt'} value={formData.endedAt} onChange={handleChangeStringForm} errorMessage={errors.endedAt} />
             </div>
           </div>
-          <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.strategy} height={400} />
-          <TextAreaForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.result} />
-          <TextAreaForm label={'ふりかえり'} name={'retrospective'} value={formData.retrospective} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.retrospective} />
-          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
+          <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} errorMessage={errors.strategy} height={400} />
+          <TextAreaForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
+          <TextAreaForm label={'ふりかえり'} name={'retrospective'} value={formData.retrospective} onChange={handleChangeStringForm} errorMessage={errors.retrospective} />
+          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>
       </div>

@@ -57,7 +57,7 @@ export const RecordCards = () => {
               <p className='text-secondary line-clamp-1'>戦略　{ item.strategy }</p>
               <p className='text-lightGray line-clamp-1'>結果　{ item.result }</p>
               <p className='text-lightGray line-clamp-1'>振返　{ item.retrospective }</p>
-              <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
+              <p className='text-lightGray line-clamp-1'>{ item.memo }</p>
             </div>
           </Link>
         ))}

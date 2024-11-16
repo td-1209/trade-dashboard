@@ -50,7 +50,7 @@ const isDemoOptions = [
 ];
 
 const isSettledOptions = [
-  { value: true, label: '清算済' },
+  { value: true, label: '決済完了' },
   { value: false, label: '取引中' }
 ];
 
@@ -64,7 +64,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     id: recordId,
     enteredAt: '2024-11-01_01-01',
     exitedAt: '2024-11-30_01-01',
-    timeZone: '+02:00',
+    timeZone: '+09:00',
     baseCurrency: 'USD',
     quoteCurrency: 'JPY',
     currencyLot: 0.999,
@@ -298,45 +298,45 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <TextForm label={'新規'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.enteredAt} />
+              <TextForm label={'注文日時'} name={'enteredAt'} value={formData.enteredAt} onChange={handleChangeStringForm} errorMessage={errors.enteredAt} />
             </div>
             <div className='flex-1'>
-              <TextForm label={'決済'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} placeholder={'2024-11-30_01-01'} errorMessage={errors.exitedAt} />
-            </div>
-          </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <SelectForm label={'基軸'} name={'baseCurrency'} value={formData.baseCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.baseCurrency} />
-            </div>
-            <div className='flex-1'>
-              <SelectForm label={'決済'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
+              <TextForm label={'決済日時'} name={'exitedAt'} value={formData.exitedAt} onChange={handleChangeStringForm} errorMessage={errors.exitedAt} />
             </div>
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <NumberForm label={'上決済ライン'} name={'initialUpperExitPrice'} value={formData.initialUpperExitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.998'} errorMessage={errors.initialUpperExitPrice} />
+              <SelectForm label={'基軸通貨'} name={'baseCurrency'} value={formData.baseCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.baseCurrency} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'下決済ライン'} name={'initialLowerExitPrice'} value={formData.initialLowerExitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.999'} errorMessage={errors.initialLowerExitPrice} />
-            </div>
-          </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <NumberForm label={'新規'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.998'} errorMessage={errors.entryPrice} />
-            </div>
-            <div className='flex-1'>
-              <NumberForm label={'決済'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999.999'} errorMessage={errors.exitPrice} />
+              <SelectForm label={'決済通貨'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
             </div>
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <NumberForm label={'通貨数/ロット'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} placeholder={'999'} errorMessage={errors.currencyAmountPerLot} />
+              <NumberForm label={'予定決済レート(高)'} name={'initialUpperExitPrice'} value={formData.initialUpperExitPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.initialUpperExitPrice} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'ロット'} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.currencyLot} />
+              <NumberForm label={'予定決済レート(低)'} name={'initialLowerExitPrice'} value={formData.initialLowerExitPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.initialLowerExitPrice} />
+            </div>
+          </div>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'実績注文レート'} name={'entryPrice'} value={formData.entryPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.entryPrice} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'損益'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} placeholder={'999'} errorMessage={errors.profitLossPrice} />
+              <NumberForm label={'実績決済レート'} name={'exitPrice'} value={formData.exitPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.exitPrice} />
+            </div>
+          </div>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'通貨数/ロット数'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyAmountPerLot} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'ロット数'} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyLot} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'損益額'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.profitLossPrice} />
             </div>
           </div>
           <div className='flex space-x-5'>
@@ -347,8 +347,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <RadioForm label={'デモ'} name={'isDemo'} value={formData.isDemo} onChange={handleChangeRadioForm} options={isDemoOptions} errorMessage={errors.isDemo} />
             </div>
           </div>
-          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
-          <RadioForm label={'決済済み'} name={'isSettled'} value={formData.isSettled} onChange={handleChangeRadioForm} options={isSettledOptions} errorMessage={errors.isSettled} />
+          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
+          <RadioForm label={'ステータス'} name={'isSettled'} value={formData.isSettled} onChange={handleChangeRadioForm} options={isSettledOptions} errorMessage={errors.isSettled} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>
       </div>

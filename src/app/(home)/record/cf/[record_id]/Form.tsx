@@ -141,7 +141,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
         <form onSubmit={handleSubmit}>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <TextForm label={'実行'} name={'executedAt'} value={formData.executedAt} onChange={handleChangeStringForm} placeholder={'2024-11-01_01-01'} errorMessage={errors.executedAt} />
+              <TextForm label={'実行日'} name={'executedAt'} value={formData.executedAt} onChange={handleChangeStringForm} errorMessage={errors.executedAt} />
             </div>
             <div className='flex-1'>
               <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
@@ -149,16 +149,16 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <SelectForm label={'決済'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
+              <SelectForm label={'決済通貨'} name={'quoteCurrency'} value={formData.quoteCurrency} onChange={handleChangeSelectForm} options={currencyOptions} errorMessage={errors.quoteCurrency} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'金額'} name={'price'} value={formData.price.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.price} />
+              <NumberForm label={'金額'} name={'price'} value={formData.price.toString()} onChange={handleChangeNumberForm} errorMessage={errors.price} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'ボーナス'} name={'bonus'} value={formData.bonus.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.price} />
+              <NumberForm label={'ボーナス額'} name={'bonus'} value={formData.bonus.toString()} onChange={handleChangeNumberForm} errorMessage={errors.price} />
             </div>
           </div>
-          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
+          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>
       </div>

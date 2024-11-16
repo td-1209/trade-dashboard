@@ -97,21 +97,7 @@ export const RecordCards = () => {
               )}
               <p className='text-lightGray'>ペア　{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
               <p className='text-lightGray'>手法　{ methods[item.method]?.name }</p>
-              <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
-              {/* <p>
-                { currencySymbols[item.quoteCurrency] }{ item.entryPrice }
-                {
-                  item.position.toLowerCase() === 'long' ? ' (買い)' :
-                    item.position.toLowerCase() === 'short' ? ' (売り)' :
-                      item.position
-                }　→　
-                { currencySymbols[item.quoteCurrency] }{ item.exitPrice }
-                {
-                  item.position.toLowerCase() === 'long' ? ' (売り)' :
-                    item.position.toLowerCase() === 'short' ? ' (買い)' :
-                      item.position
-                }
-              </p> */}
+              <p className='text-lightGray line-clamp-1'>{ item.memo }</p>
             </div>
           </Link>
         ))}

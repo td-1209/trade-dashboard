@@ -33,7 +33,7 @@ export default function Home() {
       <div className='px-5 py-5'>
         <div className='flex space-x-5'>
           <div className='flex-1'>
-            <InputField label={'通貨数/ロット'} value={currencyAmountPerLot.toString()} setValue={(value: number) => setCurrencyAmountPerLot(value)} />
+            <InputField label={'通貨数/ロット数'} value={currencyAmountPerLot.toString()} setValue={(value: number) => setCurrencyAmountPerLot(value)} />
           </div>
           <div className='flex-1'>
             <InputField label={'証拠金維持率(%)'} value={maintenanceMarginRatio.toString()} setValue={(value: number) => setMaintenanceMarginRatio(value)} />
@@ -53,7 +53,7 @@ export default function Home() {
         <InputField label={'有効証拠金(JPY)'} value={tradingCapital.toString()} setValue={(value: number) => setTradingCapital(value)} />
         <p>資金管理に基づく1回分の投入額とすること</p>
         <div className='pt-10'>
-          { maxLotSize !== null && <InputField label={'ロット上限'} value={maxLotSize.toFixed(3)} setValue={(value: number) => setMaxLotSize(value)} /> }
+          { maxLotSize !== null && <InputField label={'ロット数上限'} value={maxLotSize.toFixed(3)} setValue={(value: number) => setMaxLotSize(value)} /> }
         </div>
       </div>
     </>

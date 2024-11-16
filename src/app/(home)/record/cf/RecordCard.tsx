@@ -59,10 +59,10 @@ export const RecordCards = () => {
           <Link key={index} href={`/record/cf/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[110px]'>
               <p className='text-xl text-lightGray'>{ item.executedAt }</p>
-              <p className={`${ item.price >= 0 ? 'text-orange-600' : 'text-blue-600' }`}>
+              <p className={`${ item.price >= 0 ? 'text-negative' : 'text-positive' }`}>
                 { item.price >= 0 ? '入金' : '出金' }　{ currencySymbols[item.quoteCurrency] }{ item.price }
               </p>
-              <p className='text-lightGray line-clamp-1'>メモ　{ item.memo }</p>
+              <p className='text-lightGray line-clamp-1'>{ item.memo }</p>
             </div>
           </Link>
         ))}
