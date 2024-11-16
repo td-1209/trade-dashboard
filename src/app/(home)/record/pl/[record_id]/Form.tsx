@@ -208,13 +208,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
         fetchGETRequestItem<PlRecord>({ endpoint: `/api/pl/read-item?id=${recordId}` }),
         fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
       ]);
-      // 記録が存在する場合は初期値に設定
-      if (newRecord) {
-        setIsExistRecord(true);
-        setFormData(newRecord);
-        resetUpdatedFields();
-      }
-      // 手法が存在する場合は初期値に設定
+      // 手法が存在する場合は手法リストを更新
       if (newMethods) {
         const methodOptions = newMethods.map(
           method => ({
@@ -223,14 +217,16 @@ export function RecordForm({ recordId }: RecordFormProps) {
           })
         );
         setMethodOptions(methodOptions);
+        setFormData(prev => ({...prev, method: methodOptions[0].value}));
+        resetUpdatedFields();
       }
-      // 記録が存在せず手法が存在する場合は初期値に設定
-      if (newMethods) {
-        if (!newRecord) {
-          setFormData(prev => ({...prev, method: methodOptions[0].value}));
-          resetUpdatedFields();
-        }
+      // 記録が存在する場合は全ての初期値を更新
+      if (newRecord) {
+        setIsExistRecord(true);
+        setFormData(newRecord);
+        resetUpdatedFields();
       }
+      // データロードの終了を宣言
       setIsLoading(false);
       // console.log(`before-items: ${JSON.stringify(newRecord, null, 2)}`);
     };
