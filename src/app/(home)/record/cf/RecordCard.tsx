@@ -21,6 +21,7 @@ const initialCfRecords: CfRecord[] = [{
   timeZone: '+00:00',
   quoteCurrency: 'JPY',
   price: 0,
+  bonus: 0,
   memo: '',
 }];
 

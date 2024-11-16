@@ -31,6 +31,7 @@ export interface CfRecord extends Record<string, Item> {
   timeZone: TimeZone;
   quoteCurrency: string;
   price: number;
+  bonus: number;
   memo: string;
 }
 

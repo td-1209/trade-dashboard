@@ -38,7 +38,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
     executedAt: '2024-11-01_01-01',
     timeZone: '+09:00',
     quoteCurrency: 'JPY',
-    price: 1000,
+    price: 10000,
+    bonus: 10000,
     memo: '',
   };
 
@@ -69,7 +70,9 @@ export function RecordForm({ recordId }: RecordFormProps) {
     
     // 数字系
     const priceError = validateInteger({ name: 'price', value: formData.price.toString(), setFormData: setFormData});
+    const bonusError = validateInteger({ name: 'bonus', value: formData.bonus.toString(), setFormData: setFormData});
     if (priceError) newErrors.price = priceError;
+    if (bonusError) newErrors.bonus = bonusError;
 
     // エラーの状態更新
     setErrors(newErrors);
@@ -150,6 +153,9 @@ export function RecordForm({ recordId }: RecordFormProps) {
             </div>
             <div className='flex-1'>
               <NumberForm label={'金額'} name={'price'} value={formData.price.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.price} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'ボーナス'} name={'bonus'} value={formData.bonus.toString()} onChange={handleChangeNumberForm} placeholder={'1000'} errorMessage={errors.price} />
             </div>
           </div>
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} placeholder={'自由記述'} errorMessage={errors.memo} />
