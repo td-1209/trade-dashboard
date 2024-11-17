@@ -1,28 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { calculateMaxLotSize } from '@/lib/calc';
+import { calculateMaxLotSize, calculateRiskReward } from '@/lib/calc';
 
 export default function Home() {
   const [entryPrice, setEntryPrice] = useState<number>(0);
-  const [exitPrice, setExitPrice] = useState<number>(0);
+  const [lossCutPrice, setLossCutPrice] = useState<number>(0);
+  const [takeProfitPrice, setTakeProfitPrice] = useState<number>(0);
   const [tradingCapital, setTradingCapital] = useState<number>(0);
   const [currencyAmountPerLot, setCurrencyAmountPerLot] = useState<number>(100000);
   const [maintenanceMarginRatio, setMaintenanceMarginRatio] = useState<number>(20);
   const [jpyCrossRate, setJpyCrossRate] = useState<number>(1);
+  const [riskReward, setRiskReward] = useState<number | null>(null);
   const [maxLotSize, setMaxLotSize] = useState<number | null>(null);
   useEffect(() => {
     const maxlotSize =  calculateMaxLotSize({
       entryPrice: entryPrice,
-      exitPrice: exitPrice,
+      lossCutPrice: lossCutPrice,
       tradingCapital: tradingCapital/jpyCrossRate,
       currencyAmountPerLot: currencyAmountPerLot,
       maintenanceMarginRatio: maintenanceMarginRatio
     });
     setMaxLotSize(maxlotSize);
+    const riskReward = calculateRiskReward({
+      entryPrice: entryPrice,
+      lossCutPrice: lossCutPrice,
+      takeProfitPrice: takeProfitPrice
+    });
+    setRiskReward(riskReward);
   }, [
     entryPrice,
-    exitPrice,
+    lossCutPrice,
+    takeProfitPrice,
     tradingCapital,
     jpyCrossRate,
     currencyAmountPerLot,
@@ -44,16 +53,20 @@ export default function Home() {
             <InputField label={'決済通貨/JPY'} value={jpyCrossRate.toString()} setValue={(value: number) => setJpyCrossRate(value)} />
           </div>
           <div className='flex-1'>
+            <InputField label={'利確レート'} value={takeProfitPrice.toString()} setValue={(value: number) =>setTakeProfitPrice(value)} />
+          </div>
+          <div className='flex-1'>
             <InputField label={'注文レート'} value={entryPrice.toString()} setValue={(value: number) => setEntryPrice(value)} />
           </div>
           <div className='flex-1'>
-            <InputField label={'損切レート'} value={exitPrice.toString()} setValue={(value: number) => setExitPrice(value)} />
+            <InputField label={'損切レート'} value={lossCutPrice.toString()} setValue={(value: number) => setLossCutPrice(value)} />
           </div>
         </div>
         <InputField label={'有効証拠金(JPY)'} value={tradingCapital.toString()} setValue={(value: number) => setTradingCapital(value)} />
         <p>資金管理に基づく1回分の投入額とすること</p>
         <div className='pt-10'>
           { maxLotSize !== null && <InputField label={'ロット数上限'} value={maxLotSize.toFixed(3)} setValue={(value: number) => setMaxLotSize(value)} /> }
+          { riskReward !== null && <InputField label={'リスクリワード'} value={riskReward.toFixed(3)} setValue={(value: number) => setRiskReward(value)} /> }
         </div>
       </div>
     </>
