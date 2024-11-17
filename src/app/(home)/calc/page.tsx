@@ -67,6 +67,7 @@ export default function Home() {
         <div className='pt-10'>
           { maxLotSize !== null && <InputField label={'ロット数上限'} value={maxLotSize.toFixed(3)} setValue={(value: number) => setMaxLotSize(value)} /> }
           { riskReward !== null && <InputField label={'リスクリワード'} value={riskReward.toFixed(3)} setValue={(value: number) => setRiskReward(value)} /> }
+          { riskReward !== null && riskReward < 3 && <p className='text-attention'>リスクリワードは3倍以上に</p>}
         </div>
       </div>
     </>
