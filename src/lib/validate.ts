@@ -16,12 +16,12 @@ export const validateFloat = <T>(
   { name, value, setFormData }:
   { name: string, value: string, setFormData: React.Dispatch<React.SetStateAction<T>> }
 ): string | null => {
-  const regexFloat = /^(-?[0-9]{1,10}\.[0-9]{3})$/;
+  const regexFloat = /^-?\d+(\.\d+)?$/;
   const stringValue = value.trim();
   if (!stringValue) {
     return '未入力';
   } else if (!regexFloat.test(stringValue)) {
-    return '小数点3桁';
+    return '無効な数値形式';
   } else {
     // note: parseFloatは引数が整数のとき返り値も整数
     setFormData(prev => ({...prev, [name]: parseFloat(value)}));
