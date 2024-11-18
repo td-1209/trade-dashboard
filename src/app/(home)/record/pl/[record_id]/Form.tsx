@@ -42,6 +42,7 @@ const currencyOptions: {
   { value: 'NZD', label: 'NZD' },
   { value: 'CAD', label: 'CAD' },
   { value: 'CHF', label: 'CHF' },
+  { value: 'ZAR', label: 'ZAR' },
 ];
 
 const isDemoOptions = [
