@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Item, PlRecord, Position, TimeZone, Currencies, Method } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
-import { calculatePips } from '@/lib/calc';
+import { calculateMaxLotSize, calculatePips, calculateRiskReward } from '@/lib/calc';
 import { fetchGETRequestItem, fetchGETRequestItems, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
 import { validateDateTime, validateFloat, validateInteger } from '@/lib/validate';
@@ -68,15 +68,15 @@ export function RecordForm({ recordId }: RecordFormProps) {
     timeZone: '+09:00',
     baseCurrency: 'USD',
     quoteCurrency: 'JPY',
-    currencyLot: 0.999,
+    currencyLot: 0.01,
     currencyAmountPerLot: 100000,
     position: 'long',
-    initialUpperExitPrice: 999.999,
-    initialLowerExitPrice: 999.997,
-    entryPrice: 999.998,
-    exitPrice: 999.999,
+    initialUpperExitPrice: 0.999,
+    initialLowerExitPrice: 0.999,
+    entryPrice: 0.999,
+    exitPrice: 0.999,
     profitLossPrice: 999,
-    profitLossPips: -999.999,
+    profitLossPips: 0.999,
     method: '',
     isDemo: false,
     isSettled: false,
@@ -279,6 +279,79 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // postProcessAfterValidationで更新される値を依存配列に設定
   }, [updatedFields.profitLossPips]);
 
+  // ロット上限などの計算処理系
+  const [maintenanceMarginRatio, setMaintenanceMarginRatio] = useState<string>('20');
+  const [versusJpyPrice, setVersusJpyPrice] = useState<string>('1');
+  const [tradingCapital, setTradingCapital] = useState<string>('0');
+  const [maxLotSize, setMaxLotSize] = useState<string | null>(null);
+  const [takeProfitPips, setTakeProfitPips] = useState<string | null>(null);
+  const [lossCutPips, setLossCutPips] = useState<string | null>(null);
+  const [riskReward, setRiskReward] = useState<string | null>(null);
+  const handleChangeMaintenanceMarginRatio = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setMaintenanceMarginRatio(value);
+  };
+  const handleChangeVersusJpyPrice = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setVersusJpyPrice(value);
+  };
+  const handleChangeTradingCapital = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setTradingCapital(value);
+  };
+  useEffect(() => {
+    let takeProfitPrice: number;
+    let lossCutPrice: number;
+    switch (formData.position) {
+    case 'long':
+      takeProfitPrice = formData.initialUpperExitPrice;
+      lossCutPrice = formData.initialLowerExitPrice;
+      break;
+    case 'short':
+      takeProfitPrice = formData.initialLowerExitPrice;
+      lossCutPrice = formData.initialUpperExitPrice;
+      break;
+    }
+    const maxLotSize =  calculateMaxLotSize({
+      entryPrice: formData.entryPrice,
+      lossCutPrice: lossCutPrice,
+      tradingCapital: parseFloat(tradingCapital)/parseFloat(versusJpyPrice),
+      currencyAmountPerLot: formData.currencyAmountPerLot,
+      maintenanceMarginRatio: parseFloat(maintenanceMarginRatio)
+    });
+    setMaxLotSize(maxLotSize.toFixed(2));
+    const takeProfitPips = calculatePips({
+      quoteCurrency: formData.quoteCurrency,
+      entryPrice: formData.entryPrice,
+      exitPrice: takeProfitPrice,
+      position: formData.position
+    });
+    setTakeProfitPips(takeProfitPips.toFixed(2));
+    const lossCutPips = calculatePips({
+      quoteCurrency: formData.quoteCurrency,
+      entryPrice: formData.entryPrice,
+      exitPrice: lossCutPrice,
+      position: formData.position
+    });
+    setLossCutPips(lossCutPips.toFixed(2));
+    const riskReward = calculateRiskReward({
+      entryPrice: formData.entryPrice,
+      lossCutPrice: lossCutPrice,
+      takeProfitPrice: takeProfitPrice
+    });
+    setRiskReward(riskReward.toFixed(2));
+  }, [
+    formData.entryPrice,
+    formData.quoteCurrency,
+    formData.position,
+    formData.initialUpperExitPrice,
+    formData.initialLowerExitPrice,
+    formData.currencyAmountPerLot,
+    maintenanceMarginRatio,
+    versusJpyPrice,
+    tradingCapital,
+  ]);
+
   if (isLoading) {
     return (
       <div className='px-5 py-5'>
@@ -331,10 +404,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <NumberForm label={'通貨数/ロット数'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyAmountPerLot} />
+              <NumberForm label={'通貨数/ロット'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyAmountPerLot} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={'ロット数'} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyLot} />
+              <NumberForm label={`ロット(<${maxLotSize})`} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyLot} />
             </div>
             <div className='flex-1'>
               <NumberForm label={'損益額'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.profitLossPrice} />
@@ -346,6 +419,28 @@ export function RecordForm({ recordId }: RecordFormProps) {
             </div>
             <div className='flex-1'>
               <RadioForm label={'デモ'} name={'isDemo'} value={formData.isDemo} onChange={handleChangeRadioForm} options={isDemoOptions} errorMessage={errors.isDemo} />
+            </div>
+          </div>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <NumberForm label={'証拠金維持率%'} name={'maintenanceMarginRatio'} value={maintenanceMarginRatio.toString()} onChange={handleChangeMaintenanceMarginRatio} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'決済通貨/JPY'} name={'versusJpyPrice'} value={versusJpyPrice.toString()} onChange={handleChangeVersusJpyPrice} />
+            </div>
+            <div className='flex-1'>
+              <NumberForm label={'有効証拠金円'} name={'tradingCapital'} value={tradingCapital.toString()} onChange={handleChangeTradingCapital} />
+            </div>
+          </div>
+          <div className='flex space-x-5'>
+            <div className='flex-1'>
+              <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
+            </div>
+            <div className='flex-1'>
+              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 30 && 'リワード不足' } />
+            </div>
+            <div className='flex-1'>
+              <ItemDisplay label={'損切pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 10 && 'リスク過剰' } />
             </div>
           </div>
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
@@ -360,5 +455,31 @@ export function RecordForm({ recordId }: RecordFormProps) {
 const ItemLoading = () => {
   return(
     <></>
+  );
+};
+
+interface ItemDisplayProps {
+  label: string;
+  value:string | false;
+  message: string | false; 
+}
+
+const ItemDisplay: React.FC<ItemDisplayProps> = ({ label, value, message }) => {
+  return (
+    <div className='py-1'>
+      <label className='block text-sm text-lightGray'>
+        {label}
+      </label>
+      <p className='block w-full px-2 py-2 rounded-md bg-black placeholder:text-lightGray focus:outline-none focus:bg-black text-white'>
+        {value}
+      </p>
+      <div>
+        {message? (
+          <p className='text-sm text-negative'>{message}</p>
+        ) : (
+          <p className='text-sm text-transparent'>&#8203;</p>
+        )}
+      </div>
+    </div>
   );
 };
