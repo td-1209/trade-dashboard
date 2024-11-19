@@ -34,6 +34,10 @@ export function calculatePips({ quoteCurrency, entryPrice, exitPrice, position }
   switch (quoteCurrency) {
   case 'JPY':
     return parseFloat((sign * (exitPrice - entryPrice) * 100).toFixed(3));
+  // 新興国通貨はpipsが拡大する傾向あり
+  case 'ZAR':
+  case 'MXN':
+    return parseFloat((sign * (exitPrice - entryPrice) * 100 / 10).toFixed(3));
   default:
     return parseFloat((sign * (exitPrice - entryPrice) * 10000).toFixed(3));
   }
