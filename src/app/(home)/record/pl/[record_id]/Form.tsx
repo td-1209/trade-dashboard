@@ -76,7 +76,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
     entryPrice: 0.999,
     exitPrice: 0.999,
     profitLossPrice: 999,
-    profitLossPips: 0.999,
     method: '',
     isDemo: false,
     isSettled: false,
