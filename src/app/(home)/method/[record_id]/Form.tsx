@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Item, PlRecord, Method } from '@/types/type';
+import { Item, Method } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, TextAreaForm } from '@/app/(home)/components/FormParts';
 import { fetchGETRequestItem, fetchPostRequest } from '@/lib/request';
@@ -22,7 +22,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
   };
   
   // 型
-  type Errors = {[K in keyof PlRecord]?: string};
+  type Errors = {[K in keyof Method]?: string};
   
   // 状態
   const [

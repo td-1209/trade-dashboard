@@ -93,7 +93,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
   const [
     formData, updatedFields,
     {
-      setFormData, setUpdatedFields,
+      setFormData,
       handleChangeStringForm, handleChangeNumberForm,
       handleChangeSelectForm, handleChangeRadioForm, resetUpdatedFields
     }
@@ -190,21 +190,29 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // フォームの登録・キャンセル処理
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // バリデーション通過後の処理
     if (validateForm()) {
-      setFormData(prev => ({
-        ...prev,
-        profitLossPips: calculatePips({
-          quoteCurrency: formData.quoteCurrency,
-          entryPrice: formData.entryPrice,
-          exitPrice: formData.exitPrice,
-          position: formData.position
-        })
-      }));
-      setUpdatedFields(prev => ({
-        ...prev,
-        profitLossPips: true
-      }));
+      const updateDB = async () => {
+        // 既存インデックスを更新
+        if (isExistRecord) {
+          const getUpdatedFormData = () => {
+            return (Object.keys(updatedFields) as Array<keyof PlRecord>).reduce((acc, key) => {
+              if (updatedFields[key as keyof PlRecord]) {
+                acc[key] = formData[key];
+              }
+              return acc;
+            }, {} as Record<string, Item>);
+          };
+          const updatedFormData = getUpdatedFormData();
+          // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
+          await fetchPostRequest({ endpoint: '/api/pl/update-item', body: { id: recordId, item: updatedFormData } });
+        // 新規インデックスを作成
+        } else {
+          // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
+          await fetchPostRequest({ endpoint: '/api/pl/create-item', body: { item: formData } });
+        }
+        router.push('/record/pl');
+      };
+      updateDB();
     }
   };
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -244,40 +252,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
     };
     fetchData();
   }, []);
-
-  // formData完成時の処理
-  // note: フックは同値で更新しても発火しない（例: updatedFields.profitLossPips）
-  useEffect(() => {
-    const updateDB = async () => {
-      // 依存配列の変数が修正されている場合のみ
-      if (
-        updatedFields.profitLossPips
-      ) {
-        // 既存インデックスを更新
-        if (isExistRecord) {
-          const getUpdatedFormData = () => {
-            return (Object.keys(updatedFields) as Array<keyof PlRecord>).reduce((acc, key) => {
-              if (updatedFields[key as keyof PlRecord]) {
-                acc[key] = formData[key];
-              }
-              return acc;
-            }, {} as Record<string, Item>);
-          };
-          const updatedFormData = getUpdatedFormData();
-          // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
-          await fetchPostRequest({ endpoint: '/api/pl/update-item', body: { id: recordId, item: updatedFormData } });
-        // 新規インデックスを作成
-        } else {
-          // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
-          await fetchPostRequest({ endpoint: '/api/pl/create-item', body: { item: formData } });
-        }
-        router.push('/record/pl');
-      }
-    };
-    updateDB();
-
-  // postProcessAfterValidationで更新される値を依存配列に設定
-  }, [updatedFields.profitLossPips]);
 
   // ロット上限などの計算処理系
   const [maintenanceMarginRatio, setMaintenanceMarginRatio] = useState<string>('20');

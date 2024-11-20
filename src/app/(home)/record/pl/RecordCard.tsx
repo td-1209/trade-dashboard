@@ -3,8 +3,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PlRecord, Method } from '@/types/type';
-import { convertDateTimeDisplayFormat } from '@/lib/calc';
+import { PlRecord, Method, Item, Currencies } from '@/types/type';
+import { calculatePips, convertDateTimeDisplayFormat } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 
@@ -15,34 +15,38 @@ import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
 //   GBP: '£',
 // };
 
-const initialPlRecords: PlRecord[] = [{
+const initialMethods: {[id: string]: Method} = {
+  id: { id: '', name: '', detail: '', memo: '' }
+};
+
+interface DisplayRecord extends Record<string, Item> {
+  id: string;
+  enteredAt: string;
+  exitedAt: string;
+  baseCurrency: Currencies;
+  quoteCurrency: Currencies;
+  profitLossPips: number;
+  method: string;
+  isDemo: boolean;
+  isSettled: boolean;
+  memo: string;
+}
+
+const initialDisplayRecords: DisplayRecord[] = [{
   id: '',
   enteredAt: '',
   exitedAt: '',
-  timeZone: '+00:00',
   baseCurrency: 'USD',
   quoteCurrency: 'JPY',
-  currencyLot: 0,
-  currencyAmountPerLot: 0,
-  position: 'long',
-  initialUpperExitPrice: 0,
-  initialLowerExitPrice: 0,
-  entryPrice: 0,
-  exitPrice: 0,
-  profitLossPrice: 0,
-  profitLossPips: -0,
+  profitLossPips: 0,
   method: '',
   isDemo: false,
   isSettled: false,
   memo: '',
 }];
 
-const initialMethods: {[id: string]: Method} = {
-  id: { id: '', name: '', detail: '', memo: '' }
-};
-
 export const RecordCards = () => {
-  const [plRecords, setPlRecords] = useState<PlRecord[]>(initialPlRecords);
+  const [displayRecords, setDisplayRecords] = useState<DisplayRecord[]>(initialDisplayRecords);
   const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -53,12 +57,29 @@ export const RecordCards = () => {
       ]);
       if (newRecords) {
         const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
-        const formattedRecords = sortedRecords.map(item => ({
+        const formattedPlRecords = sortedRecords.map(item => ({
           ...item,
           enteredAt: convertDateTimeDisplayFormat({ dateTime: item.enteredAt, timeZone: item.timeZone }),
           exitedAt: convertDateTimeDisplayFormat({ dateTime: item.exitedAt, timeZone: item.timeZone })
         }));
-        setPlRecords(formattedRecords);
+        const formattedDisplayRecords = formattedPlRecords.map(record => ({
+          id: record.id,
+          enteredAt: record.enteredAt,
+          exitedAt: record.exitedAt,
+          baseCurrency: record.baseCurrency,
+          quoteCurrency: record.quoteCurrency,
+          profitLossPips: calculatePips({
+            quoteCurrency: record.quoteCurrency,
+            entryPrice: record.entryPrice,
+            exitPrice: record.exitPrice,
+            position: record.position
+          }),
+          method: record.method,
+          isDemo: record.isDemo,
+          isSettled: record.isSettled,
+          memo: record.memo,
+        }));
+        setDisplayRecords(formattedDisplayRecords);
       }
       if (newMethods) {
         const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
@@ -80,13 +101,13 @@ export const RecordCards = () => {
   } else {
     return (
       <div className='grid grid-cols-1 px-4 gap-4'>
-        {plRecords.map((item, index) => (
+        {displayRecords.map((item, index) => (
           <Link key={index} href={`/record/pl/${item.id}`}>
             <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
               {item.isSettled ? (
                 <>
                   <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
-                  <p className={`${ item.profitLossPrice >= 0 ? 'text-positive' : 'text-negative' }`}>
+                  <p className={`${ item.profitLossPips >= 0 ? 'text-positive' : 'text-negative' }`}>
                     結果　{ item.profitLossPips } (pips)
                   </p>
                 </>
