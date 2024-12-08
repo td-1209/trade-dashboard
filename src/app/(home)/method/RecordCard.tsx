@@ -21,7 +21,8 @@ export const RecordCards = () => {
     const fetchData = async () => {
       const newMethods = await fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' });
       if (newMethods) {
-        const sortedRecords = sortItems<Method>({ items: newMethods, keyName: 'name', type: 'ASC'});
+        const filteredMethods = newMethods.filter(method => !method.name.startsWith('禁止:'));
+        const sortedRecords = sortItems<Method>({ items: filteredMethods, keyName: 'name', type: 'ASC'});
         setMethods(sortedRecords);
       }
       setIsLoading(false);
