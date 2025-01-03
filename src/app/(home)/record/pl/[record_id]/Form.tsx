@@ -63,8 +63,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
   const initialItem: PlRecord = {
     id: recordId,
-    enteredAt: '2024-11-01_01-01',
-    exitedAt: '2024-11-30_01-01',
+    enteredAt: '2025-01-01_01-01',
+    exitedAt: '2025-01-02_01-01',
     timeZone: '+09:00',
     baseCurrency: 'USD',
     quoteCurrency: 'JPY',
@@ -410,10 +410,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 30 && 'リワード不足' } />
+              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 150 && 'リワード不足' } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'損切pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 10 && 'リスク過剰' } />
+              <ItemDisplay label={'損切pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 50 && 'リスク過剰' } />
             </div>
           </div>
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
