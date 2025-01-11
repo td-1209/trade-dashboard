@@ -83,22 +83,23 @@ export const RecordCards = () => {
       <div className='grid grid-cols-1 px-4 gap-4'>
         {displayRecords.map((item, index) => (
           <Link key={index} href={`/record/pl/${item.id}`}>
-            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
+            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
               {item.isSettled ? (
                 <>
                   <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
                   <p className={`${ item.profitLossPips >= 0 ? 'text-positive' : 'text-negative' }`}>
-                    結果　{ item.profitLossPips } (pips)
+                    {item.baseCurrency}/{item.quoteCurrency}　{ item.profitLossPips } (pips)
                   </p>
                 </>
               ) : (
                 <>
                   <p className='text-xl text-lightGray'>{ item.enteredAt }　→　取引中</p>
+                  <p>{item.baseCurrency}/{item.quoteCurrency}</p>
                 </>
               )}
-              <p className='text-lightGray'>ペア　{item.baseCurrency}/{item.quoteCurrency}</p>
-              <p className='text-lightGray line-clamp-1'>{ item.reason }</p>
-              <p className='text-lightGray line-clamp-1'>{ item.result }</p>
+              <p className='text-lightGray line-clamp-3'>{ item.reason }</p>
+              <p　className='text-lightGray'>↓</p>
+              <p className='text-lightGray line-clamp-3'>{ item.result }</p>
             </div>
           </Link>
         ))}

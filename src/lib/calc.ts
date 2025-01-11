@@ -45,16 +45,21 @@ export function calculatePips({ quoteCurrency, entryPrice, exitPrice, position }
 
 interface convertDateTimeDisplayFormatProps {
   dateTime: string;
+  isWeek?: boolean;
 }
 
-export function convertDateTimeDisplayFormat({ dateTime }: convertDateTimeDisplayFormatProps) {
+export function convertDateTimeDisplayFormat({ dateTime, isWeek = false }: convertDateTimeDisplayFormatProps) {
   let jstString: string;
   try {
     const parsedDate = parse(dateTime, 'yyyy-MM-dd_HH-mm', new Date());
     const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + '+09:00';
     const dateTimeObject = new Date(isoString);
     const jstDateTime = toZonedTime(dateTimeObject, 'Asia/Tokyo');
-    jstString = format(jstDateTime, 'yy.MM.dd.E', {locale: ja});
+    if (isWeek) {
+      jstString = format(jstDateTime, 'MM/dd週', {locale: ja});
+    } else {
+      jstString = format(jstDateTime, 'MM/dd(E)', {locale: ja});
+    }
   } catch  {
     jstString = '日付エラー';
   }

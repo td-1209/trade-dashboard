@@ -21,7 +21,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     result: '',
     retrospective: '',
     strategy: '',
-    week: '2024-11-04_00-00',
+    week: '2025-01-06_00-00',
   };
 
   // 型
@@ -126,10 +126,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <TextForm label={'開始日'} name={'week'} value={formData.week} onChange={handleChangeStringForm} errorMessage={errors.week} />
             </div>
           </div>
-          <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} errorMessage={errors.strategy} height={400} />
-          <TextAreaForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
-          <TextAreaForm label={'ふりかえり'} name={'retrospective'} value={formData.retrospective} onChange={handleChangeStringForm} errorMessage={errors.retrospective} />
-          <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
+          <TextForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} errorMessage={errors.strategy} />
+          <TextForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
+          <TextForm label={'ふりかえり'} name={'retrospective'} value={formData.retrospective} onChange={handleChangeStringForm} errorMessage={errors.retrospective} />
+          <TextAreaForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} height={400}/>
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
         </form>
       </div>

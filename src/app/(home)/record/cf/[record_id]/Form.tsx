@@ -25,7 +25,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
   const initialItem: CfRecord = {
     id: recordId,
-    executedAt: '2025-01-01_01-01',
+    executedAt: '2025-01-06_00-00',
     memo: '',
     price: 10000,
     quoteCurrency: 'JPY',

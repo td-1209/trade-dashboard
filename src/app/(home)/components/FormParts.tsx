@@ -82,6 +82,7 @@ interface NumberFormProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   errorMessage?: string;
+  isAttention? : boolean;
 }
 
 export const NumberForm: React.FC<NumberFormProps> = ({
@@ -90,11 +91,12 @@ export const NumberForm: React.FC<NumberFormProps> = ({
   value,
   onChange,
   placeholder,
-  errorMessage
+  errorMessage,
+  isAttention = false
 }) => {
   return (
     <div className='py-1'>
-      <label className='block text-sm text-lightGray'>
+      <label className={`block text-sm ${isAttention ? 'text-attention' : 'text-lightGray'}`}>
         {label}
       </label>
       <input

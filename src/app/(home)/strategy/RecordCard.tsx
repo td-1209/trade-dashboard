@@ -27,7 +27,7 @@ export const RecordCards = () => {
         const sortedRecords = sortItems<Strategy>({ items: newStrategies, keyName: 'id', type: 'DSC'});
         const formattedRecords = sortedRecords.map(item => ({
           ...item,
-          week: convertDateTimeDisplayFormat({ dateTime: item.week }),
+          week: convertDateTimeDisplayFormat({ dateTime: item.week, isWeek: true }),
         }));
         setStrategies(formattedRecords);
       }
@@ -49,11 +49,13 @@ export const RecordCards = () => {
       <div className='grid grid-cols-1 px-4 gap-4'>
         {Strategies.map((item, index) => (
           <Link key={index} href={`/strategy/${item.id}`}>
-            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[150px]'>
-              <p className='text-xl text-lightGray'>{ item.week }週</p>
-              <p className='text-secondary line-clamp-1'>戦略　{ item.strategy }</p>
-              <p className='text-lightGray line-clamp-1'>結果　{ item.result }</p>
-              <p className='text-lightGray line-clamp-1'>振返　{ item.retrospective }</p>
+            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
+              <p className='text-xl text-lightGray'>{ item.week }</p>
+              <p className='text-secondary line-clamp-3'>{ item.strategy }</p>
+              <p　className='text-lightGray'>↓</p>
+              <p className='text-lightGray line-clamp-3'>{ item.result }</p>
+              <p　className='text-lightGray'>↓</p>
+              <p className='text-secondary line-clamp-3'>{ item.retrospective }</p>
             </div>
           </Link>
         ))}

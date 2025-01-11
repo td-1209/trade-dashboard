@@ -55,7 +55,7 @@ export const RecordCards = () => {
       <div className='grid grid-cols-1 px-4 gap-4'>
         {CfRecords.map((item, index) => (
           <Link key={index} href={`/record/cf/${item.id}`}>
-            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-[110px]'>
+            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
               <p className='text-xl text-lightGray'>{ item.executedAt }</p>
               <p className={`${ item.price >= 0 ? 'text-negative' : 'text-positive' }`}>
                 { item.price >= 0 ? '入金' : '出金' }　{ currencySymbols[item.quoteCurrency] }{ item.price }

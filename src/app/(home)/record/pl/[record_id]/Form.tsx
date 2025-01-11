@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Item, PlRecord, Position, Currencies } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
-import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
+import { TextForm, NumberForm, SelectForm, RadioForm, TextAreaForm } from '@/app/(home)/components/FormParts';
 import { calculateMaxLotSize, calculatePips, calculateRiskReward } from '@/lib/calc';
 import { fetchGETRequestItem, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
@@ -362,7 +362,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <NumberForm label={'通貨数/ロット'} name={'currencyAmountPerLot'} value={formData.currencyAmountPerLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyAmountPerLot} />
             </div>
             <div className='flex-1'>
-              <NumberForm label={`ロット(<${maxLotSize})`} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyLot} />
+              <NumberForm label={`ロット(<${maxLotSize})`} name={'currencyLot'} value={formData.currencyLot.toString()} onChange={handleChangeNumberForm} errorMessage={errors.currencyLot} isAttention={true} />
             </div>
             <div className='flex-1'>
               <NumberForm label={'損益額'} name={'profitLossPrice'} value={formData.profitLossPrice.toString()} onChange={handleChangeNumberForm} errorMessage={errors.profitLossPrice} />
@@ -387,8 +387,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 200 && '200pips以上' } />
             </div>
           </div>
-          <TextForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
-          <TextForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
+          <TextAreaForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
+          <TextAreaForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
           <RadioForm label={'ステータス'} name={'isSettled'} value={formData.isSettled} onChange={handleChangeRadioForm} options={isSettledOptions} errorMessage={errors.isSettled} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
