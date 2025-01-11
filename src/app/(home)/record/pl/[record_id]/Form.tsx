@@ -156,6 +156,14 @@ export function RecordForm({ recordId }: RecordFormProps) {
           newErrors.initialLowerExitPrice = '注文/決済の大小';
         }
       }
+      // リスクリワードとpipsが既定値を満たすか検証
+      if (riskReward !== null && parseFloat(riskReward) < 3) {
+        newErrors.initialUpperExitPrice = 'リワード不足';
+        newErrors.initialLowerExitPrice = 'リスク過剰';
+      }
+      if (takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 200) {
+        newErrors.initialUpperExitPrice = 'リワード不足';
+      }
     }
 
     // エラーの状態更新
@@ -228,7 +236,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
   const [tradingCapital, setTradingCapital] = useState<string>('0');
   const [maxLotSize, setMaxLotSize] = useState<string | null>(null);
   const [takeProfitPips, setTakeProfitPips] = useState<string | null>(null);
-  const [lossCutPips, setLossCutPips] = useState<string | null>(null);
   const [riskReward, setRiskReward] = useState<string | null>(null);
   const handleChangeMaintenanceMarginRatio = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -270,13 +277,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
       position: formData.position
     });
     setTakeProfitPips(takeProfitPips.toFixed(2));
-    const lossCutPips = calculatePips({
-      quoteCurrency: formData.quoteCurrency,
-      entryPrice: formData.entryPrice,
-      exitPrice: lossCutPrice,
-      position: formData.position
-    });
-    setLossCutPips(lossCutPips.toFixed(2));
     const riskReward = calculateRiskReward({
       entryPrice: formData.entryPrice,
       lossCutPrice: lossCutPrice,
@@ -370,10 +370,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 150 && 'リワード不足' } />
-            </div>
-            <div className='flex-1'>
-              <ItemDisplay label={'損切pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 50 && 'リスク過剰' } />
+              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 200 && '200pips以上' } />
             </div>
           </div>
           <TextForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
