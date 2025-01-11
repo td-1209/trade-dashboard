@@ -12,12 +12,14 @@ import {
   Title,
   Tooltip,
   Legend,
-  Scale
+  TimeScale
 } from 'chart.js';
+import { ja } from 'date-fns/locale';
 import { PlRecord } from '@/types/type';
 import { calculatePips } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems } from '@/lib/dynamodb';
+import 'chartjs-adapter-date-fns';
 
 ChartJS.register(
   CategoryScale,
@@ -26,7 +28,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TimeScale
 );
 
 interface ChartData {
@@ -73,18 +76,33 @@ export const ResultGraph = () => {
         beginAtZero: false
       },
       x: {
+        type: 'time' as const,
+        time: {
+          unit: 'day' as const,
+          displayFormats: {
+            day: 'MM/dd'
+          }
+        },
+        adapters: {
+          date: {
+            locale: ja
+          }
+        },
         ticks: {
           maxRotation: 90, // x軸のラベルを縦書きに
-          minRotation: 90,
-          callback: function(this: Scale, value: string | number, index: number): string {
-            // 日付のみを表示 (MM/dd形式)
-            const label = chartData.labels[index];
-            return label ? label.split('_')[0].slice(5) : '';
-          }
+          minRotation: 90
         }
       }
     }
   };
+
+  const convertToDateFormat = (labels: string[]) => {
+    return labels.map(label => {
+      const datePart = label.split('_')[0];
+      return new Date(datePart);
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const [newRecords] = await Promise.all([
@@ -92,9 +110,10 @@ export const ResultGraph = () => {
       ]);
       if (newRecords) {
         // データの加工
-        const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
+        const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'ASC'});
         const formattedDisplayRecords = sortedRecords.map(record => ({
           id: record.id,
+          enteredAt: record.enteredAt,
           exitedAt: record.exitedAt,
           profitLossPips: calculatePips({
             quoteCurrency: record.quoteCurrency,
@@ -108,9 +127,9 @@ export const ResultGraph = () => {
         // 決済済みのレコードのみを抽出
         const settledRecords = formattedDisplayRecords.filter(record => record.isSettled);
 
-        // settledRecordsの、exitedAtをX軸とprofitLossPipsをY軸として可視化したい
+        // 可視化データとして加工
         const newChartData = {
-          labels: settledRecords.map(record => record.exitedAt),
+          labels: convertToDateFormat(settledRecords.map(record => record.exitedAt)).map(date => date.toISOString()),
           datasets: [
             {
               label: 'Pips',
