@@ -45,14 +45,28 @@ interface RecordFormProps {
 
 export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
+  const formatDateTime = (date: Date) => {
+    // JSTに変換 (+9時間)
+    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    // YYYY-MM-DD_HH-mm 形式に変換
+    const year = jstDate.getUTCFullYear();
+    const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(jstDate.getUTCDate()).padStart(2, '0');
+    const hours = String(jstDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(jstDate.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}_${hours}-${minutes}`;
+  };
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
   const initialItem: PlRecord = {
     id: recordId,
     baseCurrency: 'USD',
     currencyAmountPerLot: 100000,
     currencyLot: 0.01,
-    enteredAt: '2025-01-01_01-01',
+    enteredAt: formatDateTime(now),
     entryPrice: 0.999,
-    exitedAt: '2025-01-02_01-01',
+    exitedAt: formatDateTime(tomorrow),
     exitPrice: 0.999,
     initialLowerExitPrice: 0.999,
     initialUpperExitPrice: 0.999,
