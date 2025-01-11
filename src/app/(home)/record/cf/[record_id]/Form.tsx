@@ -2,22 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Item, CfRecord, TimeZone, Currencies } from '@/types/type';
+import { Item, CfRecord, Currencies } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, NumberForm, SelectForm } from '@/app/(home)/components/FormParts';
 import { fetchGETRequestItem, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
 import { validateDateTime, validateInteger } from '@/lib/validate';
-
-const timeZoneOptions: {
-  value: TimeZone;
-  label: TimeZone;
-}[] = [
-  { value: '+00:00', label: '+00:00' },
-  { value: '+02:00', label: '+02:00' },
-  { value: '+03:00', label: '+03:00' },
-  { value: '+09:00', label: '+09:00' },
-];
 
 const currencyOptions: {
   value: Currencies;
@@ -35,12 +25,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
   const initialItem: CfRecord = {
     id: recordId,
-    executedAt: '2024-11-01_01-01',
-    timeZone: '+09:00',
-    quoteCurrency: 'JPY',
-    price: 10000,
-    bonus: 10000,
+    executedAt: '2025-01-01_01-01',
     memo: '',
+    price: 10000,
+    quoteCurrency: 'JPY',
   };
 
   // 型
@@ -70,9 +58,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     
     // 数字系
     const priceError = validateInteger({ name: 'price', value: formData.price.toString(), setFormData: setFormData});
-    const bonusError = validateInteger({ name: 'bonus', value: formData.bonus.toString(), setFormData: setFormData});
     if (priceError) newErrors.price = priceError;
-    if (bonusError) newErrors.bonus = bonusError;
 
     // エラーの状態更新
     setErrors(newErrors);
@@ -80,7 +66,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // フォームの登録・キャンセル処理
+  // フォームの登録処理
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
@@ -98,16 +84,21 @@ export function RecordForm({ recordId }: RecordFormProps) {
           const updatedFormData = getUpdatedFormData();
           // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/cf/update-item', body: { id: recordId, item: updatedFormData } });
+        
         // 新規インデックスを作成
         } else {
           // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/cf/create-item', body: { item: formData } });
         }
+        
+        // 遷移
         router.push('/record/cf');
       };
       updateDB();
     }
   };
+
+  // フォームのキャンセル処理
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.push('/record/cf');
@@ -129,6 +120,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     fetchData();
   }, []);
 
+  // コンポーネント
   if (isLoading) {
     return (
       <div className='px-5 py-5'>
@@ -143,9 +135,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
             <div className='flex-1'>
               <TextForm label={'実行日'} name={'executedAt'} value={formData.executedAt} onChange={handleChangeStringForm} errorMessage={errors.executedAt} />
             </div>
-            <div className='flex-1'>
-              <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
-            </div>
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
@@ -153,9 +142,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
             </div>
             <div className='flex-1'>
               <NumberForm label={'金額'} name={'price'} value={formData.price.toString()} onChange={handleChangeNumberForm} errorMessage={errors.price} />
-            </div>
-            <div className='flex-1'>
-              <NumberForm label={'ボーナス額'} name={'bonus'} value={formData.bonus.toString()} onChange={handleChangeNumberForm} errorMessage={errors.price} />
             </div>
           </div>
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />

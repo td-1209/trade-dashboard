@@ -3,21 +3,10 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PlRecord, Method, Item, Currencies } from '@/types/type';
+import { PlRecord, Item, Currencies } from '@/types/type';
 import { calculatePips, convertDateTimeDisplayFormat } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
-import { sortItems, convertItemListToDict } from '@/lib/dynamodb';
-
-// const currencySymbols: { [key: string]: string } = {
-//   USD: '$',
-//   EUR: '€',
-//   JPY: '¥',
-//   GBP: '£',
-// };
-
-const initialMethods: {[id: string]: Method} = {
-  id: { id: '', name: '', detail: '', memo: '' }
-};
+import { sortItems } from '@/lib/dynamodb';
 
 interface DisplayRecord extends Record<string, Item> {
   id: string;
@@ -26,10 +15,9 @@ interface DisplayRecord extends Record<string, Item> {
   baseCurrency: Currencies;
   quoteCurrency: Currencies;
   profitLossPips: number;
-  method: string;
-  isDemo: boolean;
   isSettled: boolean;
-  memo: string;
+  reason: string;
+  result: string;
 }
 
 const initialDisplayRecords: DisplayRecord[] = [{
@@ -39,28 +27,25 @@ const initialDisplayRecords: DisplayRecord[] = [{
   baseCurrency: 'USD',
   quoteCurrency: 'JPY',
   profitLossPips: 0,
-  method: '',
-  isDemo: false,
   isSettled: false,
-  memo: '',
+  reason: '',
+  result: '',
 }];
 
 export const RecordCards = () => {
   const [displayRecords, setDisplayRecords] = useState<DisplayRecord[]>(initialDisplayRecords);
-  const [methods, setMethods] = useState<{[id: string]: Method}>(initialMethods);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
-      const [newRecords, newMethods] = await Promise.all([
+      const [newRecords] = await Promise.all([
         fetchGETRequestItems<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
-        fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
       ]);
       if (newRecords) {
         const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
         const formattedPlRecords = sortedRecords.map(item => ({
           ...item,
-          enteredAt: convertDateTimeDisplayFormat({ dateTime: item.enteredAt, timeZone: item.timeZone }),
-          exitedAt: convertDateTimeDisplayFormat({ dateTime: item.exitedAt, timeZone: item.timeZone })
+          enteredAt: convertDateTimeDisplayFormat({ dateTime: item.enteredAt }),
+          exitedAt: convertDateTimeDisplayFormat({ dateTime: item.exitedAt })
         }));
         const formattedDisplayRecords = formattedPlRecords.map(record => ({
           id: record.id,
@@ -74,16 +59,11 @@ export const RecordCards = () => {
             exitPrice: record.exitPrice,
             position: record.position
           }),
-          method: record.method,
-          isDemo: record.isDemo,
           isSettled: record.isSettled,
-          memo: record.memo,
+          reason: record.reason,
+          result: record.result,
         }));
         setDisplayRecords(formattedDisplayRecords);
-      }
-      if (newMethods) {
-        const formattedMethods = convertItemListToDict<Method>({ key: 'id', items: newMethods });
-        setMethods(formattedMethods);
       }
       setIsLoading(false);
     };
@@ -116,9 +96,9 @@ export const RecordCards = () => {
                   <p className='text-xl text-lightGray'>{ item.enteredAt }　→　取引中</p>
                 </>
               )}
-              <p className='text-lightGray'>ペア　{item.isDemo && '(デモ)'}{item.baseCurrency}/{item.quoteCurrency}</p>
-              <p className='text-lightGray'>手法　{ methods[item.method]?.name }</p>
-              <p className='text-lightGray line-clamp-1'>{ item.memo }</p>
+              <p className='text-lightGray'>ペア　{item.baseCurrency}/{item.quoteCurrency}</p>
+              <p className='text-lightGray line-clamp-1'>{ item.reason }</p>
+              <p className='text-lightGray line-clamp-1'>{ item.result }</p>
             </div>
           </Link>
         ))}

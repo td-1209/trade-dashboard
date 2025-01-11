@@ -1,7 +1,7 @@
 import { parse, format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { ja } from 'date-fns/locale';
-import { Currencies, Position, TimeZone } from '@/types/type';
+import { Currencies, Position } from '@/types/type';
 
 export function generateULID(initialWord: string): string {
   const timeNow = Date.now();
@@ -45,14 +45,13 @@ export function calculatePips({ quoteCurrency, entryPrice, exitPrice, position }
 
 interface convertDateTimeDisplayFormatProps {
   dateTime: string;
-  timeZone: TimeZone;
 }
 
-export function convertDateTimeDisplayFormat({ dateTime, timeZone }: convertDateTimeDisplayFormatProps) {
+export function convertDateTimeDisplayFormat({ dateTime }: convertDateTimeDisplayFormatProps) {
   let jstString: string;
   try {
     const parsedDate = parse(dateTime, 'yyyy-MM-dd_HH-mm', new Date());
-    const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + timeZone;
+    const isoString = format(parsedDate, 'yyyy-MM-dd\'T\'HH:mm:ss') + '+09:00';
     const dateTimeObject = new Date(isoString);
     const jstDateTime = toZonedTime(dateTimeObject, 'Asia/Tokyo');
     jstString = format(jstDateTime, 'yy.MM.dd.E', {locale: ja});

@@ -18,11 +18,9 @@ const currencySymbols: { [key: string]: string } = {
 const initialCfRecords: CfRecord[] = [{
   id: '',
   executedAt: '',
-  timeZone: '+00:00',
-  quoteCurrency: 'JPY',
-  price: 0,
-  bonus: 0,
   memo: '',
+  price: 0,
+  quoteCurrency: 'JPY',
 }];
 
 export const RecordCards = () => {
@@ -35,7 +33,7 @@ export const RecordCards = () => {
         const sortedRecords = sortItems<CfRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
         const formattedRecords = sortedRecords.map(item => ({
           ...item,
-          executedAt: convertDateTimeDisplayFormat({ dateTime: item.executedAt, timeZone: item.timeZone })
+          executedAt: convertDateTimeDisplayFormat({ dateTime: item.executedAt })
         }));
         setCfRecords(formattedRecords);
       }

@@ -2,14 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Item, PlRecord, Position, TimeZone, Currencies, Method } from '@/types/type';
+import { Item, PlRecord, Position, Currencies } from '@/types/type';
 import { FormTwinButtons } from '@/app/(home)/components/Button';
 import { TextForm, NumberForm, SelectForm, RadioForm } from '@/app/(home)/components/FormParts';
 import { calculateMaxLotSize, calculatePips, calculateRiskReward } from '@/lib/calc';
-import { fetchGETRequestItem, fetchGETRequestItems, fetchPostRequest } from '@/lib/request';
+import { fetchGETRequestItem, fetchPostRequest } from '@/lib/request';
 import { useFormData } from '@/hooks/formData';
 import { validateDateTime, validateFloat, validateInteger } from '@/lib/validate';
-import { sortItems } from '@/lib/dynamodb';
 
 const positionOptions: {
   value: Position;
@@ -17,16 +16,6 @@ const positionOptions: {
 }[] = [
   { value: 'long', label: 'ロング' },
   { value: 'short', label: 'ショート' },
-];
-
-const timeZoneOptions: {
-  value: TimeZone;
-  label: TimeZone;
-}[] = [
-  { value: '+00:00', label: '+00:00' },
-  { value: '+02:00', label: '+02:00' },
-  { value: '+03:00', label: '+03:00' },
-  { value: '+09:00', label: '+09:00' },
 ];
 
 const currencyOptions: {
@@ -45,11 +34,6 @@ const currencyOptions: {
   { value: 'ZAR', label: 'ZAR' },
 ];
 
-const isDemoOptions = [
-  { value: true, label: 'オン' },
-  { value: false, label: 'オフ' }
-];
-
 const isSettledOptions = [
   { value: true, label: '決済完了' },
   { value: false, label: '取引中' }
@@ -63,27 +47,23 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
   const initialItem: PlRecord = {
     id: recordId,
-    enteredAt: '2025-01-01_01-01',
-    exitedAt: '2025-01-02_01-01',
-    timeZone: '+09:00',
     baseCurrency: 'USD',
-    quoteCurrency: 'JPY',
-    currencyLot: 0.01,
     currencyAmountPerLot: 100000,
-    position: 'long',
-    initialUpperExitPrice: 0.999,
-    initialLowerExitPrice: 0.999,
+    currencyLot: 0.01,
+    enteredAt: '2025-01-01_01-01',
     entryPrice: 0.999,
+    exitedAt: '2025-01-02_01-01',
     exitPrice: 0.999,
-    profitLossPrice: 999,
-    method: '',
-    isDemo: false,
+    initialLowerExitPrice: 0.999,
+    initialUpperExitPrice: 0.999,
     isSettled: false,
     memo: '',
+    position: 'long',
+    profitLossPrice: 999,
+    quoteCurrency: 'JPY',
+    reason: '',
+    result: '',
   };
-  const initialMethodOptions = [
-    { value: '', label: '' },
-  ];
 
   // 型
   type Errors = {[K in keyof PlRecord]?: string};
@@ -98,7 +78,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
     }
   ] = useFormData(initialItem);
   const [isExistRecord, setIsExistRecord] = useState<boolean>(false);
-  const [methodOptions, setMethodOptions] = useState<{ value: string; label: string; }[]>(initialMethodOptions);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
   const router = useRouter();
@@ -129,14 +108,14 @@ export function RecordForm({ recordId }: RecordFormProps) {
     if (currencyAmountPerLotError) newErrors.currencyAmountPerLot = currencyAmountPerLotError;
     if (profitLossPriceError) newErrors.profitLossPrice = profitLossPriceError;
 
-    // ロジック系（他バリデーションを優先）
+    // ロジック系（他のバリデーションを優先）
     if (Object.keys(newErrors).length === 0) {
       // 通貨ペアが異なっているか検証
       if (formData.baseCurrency === formData.quoteCurrency) {
         newErrors.baseCurrency = '通貨ペア';
         newErrors.quoteCurrency = '通貨ペア';
       }
-      // 算出した損益のと入力された損益の符号が一致するか検証
+      // 算出された損益と入力された損益の符号が一致するか検証
       if (
         formData.position.trim() &&
         formData.entryPrice.toString().trim() &&
@@ -154,7 +133,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
         default:
           throw new Error('ポジションの値が不正です。');
         }
-        // 符号が共に正または負のとき変数は正
         const isValidSign = (sign * (formData.exitPrice - formData.entryPrice)) * formData.profitLossPrice > 0;
         if (!isValidSign) {
           newErrors.position = '符号の整合性';
@@ -186,7 +164,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // フォームの登録・キャンセル処理
+  // フォームの登録処理
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
@@ -204,16 +182,21 @@ export function RecordForm({ recordId }: RecordFormProps) {
           const updatedFormData = getUpdatedFormData();
           // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/pl/update-item', body: { id: recordId, item: updatedFormData } });
+        
         // 新規インデックスを作成
         } else {
           // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/pl/create-item', body: { item: formData } });
         }
+        
+        // 遷移
         router.push('/record/pl');
       };
       updateDB();
     }
   };
+
+  // フォームのキャンセル処理
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.push('/record/pl');
@@ -222,23 +205,9 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初回描画時の処理（遷移時）
   useEffect(() => {
     const fetchData = async () => {
-      const [newRecord, newMethods] = await Promise.all([
+      const [newRecord] = await Promise.all([
         fetchGETRequestItem<PlRecord>({ endpoint: `/api/pl/read-item?id=${recordId}` }),
-        fetchGETRequestItems<Method>({ endpoint: '/api/method/read-all-items' })
       ]);
-      // 手法が存在する場合は手法リストを更新
-      if (newMethods) {
-        const sortedNewMethods = sortItems<Method>({ items: newMethods, keyName: 'name', type: 'ASC'});
-        const methodOptions = sortedNewMethods.map(
-          method => ({
-            value: method.id,
-            label: method.name
-          })
-        );
-        setMethodOptions(methodOptions);
-        setFormData(prev => ({...prev, method: methodOptions[0].value}));
-        resetUpdatedFields();
-      }
       // 記録が存在する場合は全ての初期値を更新
       if (newRecord) {
         setIsExistRecord(true);
@@ -252,7 +221,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     fetchData();
   }, []);
 
-  // ロット上限などの計算処理系
+  // RRやロット上限などの事前計算チェック系
   const [maintenanceMarginRatio, setMaintenanceMarginRatio] = useState<string>('20');
   const [versusJpyPrice, setVersusJpyPrice] = useState<string>('1');
   const [tradingCapital, setTradingCapital] = useState<string>('0');
@@ -325,6 +294,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     tradingCapital,
   ]);
 
+  // コンポーネント
   if (isLoading) {
     return (
       <div className='px-5 py-5'>
@@ -338,9 +308,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
           <div className='flex space-x-5'>
             <div className='flex-1'>
               <SelectForm label={'ポジション'} name={'position'} value={formData.position} onChange={handleChangeSelectForm} options={positionOptions} errorMessage={errors.position} />
-            </div>
-            <div className='flex-1'>
-              <SelectForm label={'タイムゾーン'} name={'timeZone'} value={formData.timeZone} onChange={handleChangeSelectForm} options={timeZoneOptions} errorMessage={errors.timeZone} />
             </div>
           </div>
           <div className='flex space-x-5'>
@@ -388,14 +355,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <SelectForm label={'手法'} name={'method'} value={formData.method} onChange={handleChangeSelectForm} options={methodOptions} errorMessage={errors.method} />
-            </div>
-            <div className='flex-1'>
-              <RadioForm label={'デモ'} name={'isDemo'} value={formData.isDemo} onChange={handleChangeRadioForm} options={isDemoOptions} errorMessage={errors.isDemo} />
-            </div>
-          </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
               <NumberForm label={'証拠金維持率%'} name={'maintenanceMarginRatio'} value={maintenanceMarginRatio.toString()} onChange={handleChangeMaintenanceMarginRatio} />
             </div>
             <div className='flex-1'>
@@ -416,6 +375,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'損切pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 50 && 'リスク過剰' } />
             </div>
           </div>
+          <TextForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
+          <TextForm label={'結果'} name={'result'} value={formData.result} onChange={handleChangeStringForm} errorMessage={errors.result} />
           <TextForm label={'メモ'} name={'memo'} value={formData.memo} onChange={handleChangeStringForm} errorMessage={errors.memo} />
           <RadioForm label={'ステータス'} name={'isSettled'} value={formData.isSettled} onChange={handleChangeRadioForm} options={isSettledOptions} errorMessage={errors.isSettled} />
           <FormTwinButtons leftLabel={'キャンセル'} rightLabel={'登録'} leftAction={handleCancel} />
@@ -424,12 +385,6 @@ export function RecordForm({ recordId }: RecordFormProps) {
     );
   }
 }
-
-const ItemLoading = () => {
-  return(
-    <></>
-  );
-};
 
 interface ItemDisplayProps {
   label: string;
@@ -454,5 +409,11 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ label, value, message }) => {
         )}
       </div>
     </div>
+  );
+};
+
+const ItemLoading = () => {
+  return(
+    <></>
   );
 };

@@ -17,13 +17,11 @@ export function RecordForm({ recordId }: RecordFormProps) {
   // 初期値
   const initialItem: Strategy = {
     id: recordId,
-    startedAt: '2024-11-01_01-01',
-    endedAt: '2024-11-30_01-01',
-    timeZone: '+09:00',
-    strategy: '',
+    memo: '',
     result: '',
     retrospective: '',
-    memo: ''
+    strategy: '',
+    week: '2024-11-04_00-00',
   };
 
   // 型
@@ -48,10 +46,8 @@ export function RecordForm({ recordId }: RecordFormProps) {
     const newErrors: Errors = {};
     
     // 時間系
-    const startedAtError = validateDateTime({ dateTime: formData.startedAt});
-    const endedAtError = validateDateTime({ dateTime: formData.endedAt});
-    if (startedAtError) newErrors.startedAt = startedAtError;
-    if (endedAtError) newErrors.endedAt = endedAtError;
+    const weekError = validateDateTime({ dateTime: formData.week});
+    if (weekError) newErrors.week = weekError;
     
     // エラーの状態更新
     setErrors(newErrors);
@@ -59,7 +55,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // フォームの登録・キャンセル処理
+  // フォームの登録処理
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
@@ -77,16 +73,21 @@ export function RecordForm({ recordId }: RecordFormProps) {
           const updatedFormData = getUpdatedFormData();
           // console.log(`after-items: ${JSON.stringify(updatedFormData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/strategy/update-item', body: { id: recordId, item: updatedFormData } });
+        
         // 新規インデックスを作成
         } else {
           // console.log(`after-items: ${JSON.stringify(formData, null, 2)}`);
           await fetchPostRequest({ endpoint: '/api/strategy/create-item', body: { item: formData } });
         }
+
+        // 遷移
         router.push('/strategy');
       };
       updateDB();
     }
   };
+
+  // フォームのキャンセル処理
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.push('/strategy');
@@ -108,6 +109,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
     fetchData();
   }, []);
 
+  // コンポーネント
   if (isLoading) {
     return (
       <div className='px-5 py-5'>
@@ -120,10 +122,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
         <form onSubmit={handleSubmit}>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <TextForm label={'開始日'} name={'startedAt'} value={formData.startedAt} onChange={handleChangeStringForm} errorMessage={errors.startedAt} />
-            </div>
-            <div className='flex-1'>
-              <TextForm label={'終了日'} name={'endedAt'} value={formData.endedAt} onChange={handleChangeStringForm} errorMessage={errors.endedAt} />
+              <TextForm label={'開始日'} name={'week'} value={formData.week} onChange={handleChangeStringForm} errorMessage={errors.week} />
             </div>
           </div>
           <TextAreaForm label={'戦略'} name={'strategy'} value={formData.strategy} onChange={handleChangeStringForm} errorMessage={errors.strategy} height={400} />
