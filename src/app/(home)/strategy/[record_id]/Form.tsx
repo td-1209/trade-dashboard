@@ -107,6 +107,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
       // console.log(`before-items: ${JSON.stringify(newStrategies, null, 2)}`);
     };
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // コンポーネント
