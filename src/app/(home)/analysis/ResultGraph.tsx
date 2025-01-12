@@ -18,7 +18,6 @@ import { ja } from 'date-fns/locale';
 import { PlRecord } from '@/types/type';
 import { calculatePips } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
-import { sortItems } from '@/lib/dynamodb';
 import 'chartjs-adapter-date-fns';
 
 ChartJS.register(
@@ -96,11 +95,9 @@ export const ResultGraph = () => {
     }
   };
 
-  const convertToDateFormat = (labels: string[]) => {
-    return labels.map(label => {
-      const datePart = label.split('_')[0];
-      return new Date(datePart);
-    });
+  const convertToDateFormat = (label: string) => {
+    const datePart = label.split('_')[0];
+    return new Date(datePart).toISOString();
   };
 
   useEffect(() => {
@@ -110,11 +107,10 @@ export const ResultGraph = () => {
       ]);
       if (newRecords) {
         // データの加工
-        const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'ASC'});
-        const formattedDisplayRecords = sortedRecords.map(record => ({
+        const formattedDisplayRecords = newRecords.map(record => ({
           id: record.id,
-          enteredAt: record.enteredAt,
-          exitedAt: record.exitedAt,
+          enteredAt: convertToDateFormat(record.enteredAt),
+          exitedAt: convertToDateFormat(record.exitedAt),
           profitLossPips: calculatePips({
             quoteCurrency: record.quoteCurrency,
             entryPrice: record.entryPrice,
@@ -123,13 +119,16 @@ export const ResultGraph = () => {
           }),
           isSettled: record.isSettled,
         }));
+        formattedDisplayRecords.sort((a, b) => 
+          new Date(b.exitedAt).getTime() - new Date(a.exitedAt).getTime()
+        );
 
         // 決済済みのレコードのみを抽出
         const settledRecords = formattedDisplayRecords.filter(record => record.isSettled);
 
         // 可視化データとして加工
         const newChartData = {
-          labels: convertToDateFormat(settledRecords.map(record => record.exitedAt)).map(date => date.toISOString()),
+          labels: settledRecords.map(record => record.exitedAt),
           datasets: [
             {
               label: 'Pips',
