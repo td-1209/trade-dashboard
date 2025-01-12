@@ -70,9 +70,23 @@ export const ResultGraph = () => {
     },
     scales: {
       y: {
-        min: -300, // Y軸の最小値
-        max: 300,  // Y軸の最大値
-        beginAtZero: false
+        min: -500, // Y軸の最小値
+        max: 500,  // Y軸の最大値
+        beginAtZero: false,
+        grid: {
+          color: (context: { tick: { value: number }, scale: { min: number, max: number } }) => {
+            if (context.tick.value === 0) {
+              return '#C51162'; // 0の位置の線を赤色に
+            }
+            return '#333333'; // その他の線は薄いグレー
+          },
+          lineWidth: (context: { tick: { value: number } }) => {
+            if (context.tick.value === 0) {
+              return 2; // 0の位置の線を太く
+            }
+            return 1; // その他の線は通常の太さ
+          }
+        }
       },
       x: {
         type: 'time' as const,
@@ -119,21 +133,32 @@ export const ResultGraph = () => {
           }),
           isSettled: record.isSettled,
         }));
-        formattedDisplayRecords.sort((a, b) => 
+        formattedDisplayRecords.sort((b, a) => 
           new Date(b.exitedAt).getTime() - new Date(a.exitedAt).getTime()
         );
 
         // 決済済みのレコードのみを抽出
         const settledRecords = formattedDisplayRecords.filter(record => record.isSettled);
 
+        // 累積pipsを計算
+        let cumulativePips = 0;
+        const cumulativeData = settledRecords.map(record => {
+          cumulativePips += record.profitLossPips;
+          return {
+            exitedAt: record.exitedAt,
+            profitLossPips: cumulativePips
+          };
+        });
+
+
         // 可視化データとして加工
         const newChartData = {
-          labels: settledRecords.map(record => record.exitedAt),
+          labels: cumulativeData.map(record => record.exitedAt),
           datasets: [
             {
               label: 'Pips',
-              data: settledRecords.map(record => record.profitLossPips),
-              borderColor: 'rgb(75, 192, 192)',
+              data: cumulativeData.map(record => record.profitLossPips),
+              borderColor: '#448AFF',
               tension: 0.1
             }
           ]
