@@ -5,7 +5,7 @@ export default async function Home() {
   return (
     <>
       <div className='flex flex-col h-screen'>
-        <div className='py-6'>
+        <div className='sticky top-0 py-6'>
           <ResultGraph />
         </div>
         <div className='flex-grow overflow-y-auto pb-16'>

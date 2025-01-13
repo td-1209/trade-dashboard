@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PlRecord, Item, Currencies } from '@/types/type';
+import { PlRecord, Item, Currencies, Strategy } from '@/types/type';
 import { calculatePips, convertDateTimeDisplayFormat } from '@/lib/calc';
 import { fetchGETRequestItems } from '@/lib/request';
 import { sortItems } from '@/lib/dynamodb';
@@ -32,14 +32,28 @@ const initialDisplayRecords: DisplayRecord[] = [{
   result: '',
 }];
 
+const initialLatestStrategy: Strategy = {
+  id: '',
+  memo: '',
+  result: '',
+  retrospective: '',
+  strategy: '',
+  week: '',
+};
+
 export const RecordCards = () => {
   const [displayRecords, setDisplayRecords] = useState<DisplayRecord[]>(initialDisplayRecords);
+  const [latestStrategy, setLatestStrategy] = useState<Strategy>(initialLatestStrategy);
+  
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
-      const [newRecords] = await Promise.all([
+      const [newRecords, newStrategies] = await Promise.all([
         fetchGETRequestItems<PlRecord>({ endpoint: '/api/pl/read-all-items' }),
+        fetchGETRequestItems<Strategy>({ endpoint: '/api/strategy/read-all-items' })
       ]);
+
+      // トレード記録取得
       if (newRecords) {
         const sortedRecords = sortItems<PlRecord>({ items: newRecords, keyName: 'id', type: 'DSC'});
         const formattedPlRecords = sortedRecords.map(item => ({
@@ -65,6 +79,18 @@ export const RecordCards = () => {
         }));
         setDisplayRecords(formattedDisplayRecords);
       }
+
+      // 最新の戦略取得
+      if (newStrategies) {
+        const sortedRecords = sortItems<Strategy>({ items: newStrategies, keyName: 'id', type: 'DSC'});
+        const formattedRecords = sortedRecords.map(item => ({
+          ...item,
+          week: convertDateTimeDisplayFormat({ dateTime: item.week, isWeek: true }),
+        }));
+        setLatestStrategy(formattedRecords[0]);
+      }
+
+      // ローディング終了
       setIsLoading(false);
     };
     fetchData();
@@ -80,30 +106,36 @@ export const RecordCards = () => {
     );
   } else {
     return (
-      <div className='grid grid-cols-1 px-4 gap-4'>
-        {displayRecords.map((item, index) => (
-          <Link key={index} href={`/record/pl/${item.id}`}>
-            <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
-              {item.isSettled ? (
-                <>
-                  <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
-                  <p className={`${ item.profitLossPips >= 0 ? 'text-positive' : 'text-negative' }`}>
-                    {item.baseCurrency}/{item.quoteCurrency}　{ item.profitLossPips } (pips)
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className='text-xl text-lightGray'>{ item.enteredAt }　→　取引中</p>
-                  <p>{item.baseCurrency}/{item.quoteCurrency}</p>
-                </>
-              )}
-              <p className='text-lightGray line-clamp-3'>{ item.reason }</p>
-              <p　className='text-lightGray'>↓</p>
-              <p className='text-lightGray line-clamp-3'>{ item.result }</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <>
+        <div className='grid grid-cols-1 px-4 gap-4'>
+          <div className='sticky top-0'>
+            <p className='text-lightGray'>最終更新: {latestStrategy.week}</p>
+            <p className='text-secondary'>{latestStrategy.strategy}</p>
+          </div>
+          {displayRecords.map((item, index) => (
+            <Link key={index} href={`/record/pl/${item.id}`}>
+              <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
+                {item.isSettled ? (
+                  <>
+                    <p className='text-xl text-lightGray'>{ item.enteredAt }　→　{ item.exitedAt }</p>
+                    <p className={`${ item.profitLossPips >= 0 ? 'text-positive' : 'text-negative' }`}>
+                      {item.baseCurrency}/{item.quoteCurrency}　{ item.profitLossPips } (pips)
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className='text-xl text-lightGray'>{ item.enteredAt }　→　取引中</p>
+                    <p>{item.baseCurrency}/{item.quoteCurrency}</p>
+                  </>
+                )}
+                <p className='text-lightGray line-clamp-3'>{ item.reason }</p>
+                <p　className='text-lightGray'>↓</p>
+                <p className='text-lightGray line-clamp-3'>{ item.result }</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </>
     );
   }
 };
