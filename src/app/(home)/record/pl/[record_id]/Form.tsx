@@ -173,10 +173,11 @@ export function RecordForm({ recordId }: RecordFormProps) {
       // リスクリワードとpipsが既定値を満たすか検証
       if (riskReward !== null && parseFloat(riskReward) < 3) {
         newErrors.initialUpperExitPrice = 'リワード不足';
-        newErrors.initialLowerExitPrice = 'リスク過剰';
+        newErrors.initialLowerExitPrice = 'リワード不足';
       }
-      if (takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 200) {
-        newErrors.initialUpperExitPrice = 'リワード不足';
+      if (lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 110) {
+        newErrors.initialUpperExitPrice = 'リスク過剰';
+        newErrors.initialLowerExitPrice = 'リスク過剰';
       }
     }
 
@@ -249,7 +250,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
   const [versusJpyPrice, setVersusJpyPrice] = useState<string>('1');
   const [tradingCapital, setTradingCapital] = useState<string>('0');
   const [maxLotSize, setMaxLotSize] = useState<string | null>(null);
-  const [takeProfitPips, setTakeProfitPips] = useState<string | null>(null);
+  const [lossCutPips, setLossCutPips] = useState<string | null>(null);
   const [riskReward, setRiskReward] = useState<string | null>(null);
   const handleChangeMaintenanceMarginRatio = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -284,13 +285,13 @@ export function RecordForm({ recordId }: RecordFormProps) {
       maintenanceMarginRatio: parseFloat(maintenanceMarginRatio)
     });
     setMaxLotSize(maxLotSize.toFixed(2));
-    const takeProfitPips = calculatePips({
+    const lossCutPips = calculatePips({
       quoteCurrency: formData.quoteCurrency,
       entryPrice: formData.entryPrice,
-      exitPrice: takeProfitPrice,
+      exitPrice: lossCutPrice,
       position: formData.position
     });
-    setTakeProfitPips(takeProfitPips.toFixed(2));
+    setLossCutPips(lossCutPips.toFixed(2));
     const riskReward = calculateRiskReward({
       entryPrice: formData.entryPrice,
       lossCutPrice: lossCutPrice,
@@ -384,7 +385,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'利確pips'} value={ takeProfitPips !== null && takeProfitPips.toString() } message= { takeProfitPips !== null && Math.abs(parseFloat(takeProfitPips)) < 200 && '200pips以上' } />
+              <ItemDisplay label={'損失pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 110 && '110pips未満' } />
             </div>
           </div>
           <TextAreaForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
