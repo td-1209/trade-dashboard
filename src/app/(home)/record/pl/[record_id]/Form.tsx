@@ -175,7 +175,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
         newErrors.initialUpperExitPrice = 'リワード不足';
         newErrors.initialLowerExitPrice = 'リワード不足';
       }
-      if (lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 110) {
+      if (lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 150) {
         newErrors.initialUpperExitPrice = 'リスク過剰';
         newErrors.initialLowerExitPrice = 'リスク過剰';
       }
@@ -385,7 +385,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
               <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'損失pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 110 && '110pips未満' } />
+              <ItemDisplay label={'損失pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 150 && '150pips未満' } />
             </div>
           </div>
           <TextAreaForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
