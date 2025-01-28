@@ -71,7 +71,7 @@ export const ResultGraph = () => {
     scales: {
       y: {
         max: 200,  // Y軸の最大値
-        min: -800, // Y軸の最小値
+        min: -1200, // Y軸の最小値
         beginAtZero: false,
         grid: {
           color: (context: { tick: { value: number }, scale: { min: number, max: number } }) => {
