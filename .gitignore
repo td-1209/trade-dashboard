@@ -38,3 +38,7 @@ next-env.d.ts
 
 __pycache__
 *.egg-info
+
+.open-next
+.wrangler
+.dev.vars

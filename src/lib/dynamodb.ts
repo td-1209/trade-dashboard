@@ -1,10 +1,36 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, DeleteCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { AWS_DEFAULT_REGION } from '@/config/constants';
+import { AWS_ACCESS_KEY_ID, AWS_DEFAULT_REGION, AWS_SECRET_ACCESS_KEY } from '@/config/constants';
 import { Item } from '@/types/type';
 
-const client = new DynamoDBClient({region: AWS_DEFAULT_REGION,});
-const docClient = DynamoDBDocumentClient.from(client);
+export const createDynamoDbClient = () => {
+  const marshallOptions = {
+    // Whether to automatically convert empty strings, blobs, and sets to `null`.
+    convertEmptyValues: false,
+    // Whether to remove undefined values while marshalling.
+    removeUndefinedValues: true,
+    // Whether to convert typeof object to map attribute.
+    convertClassInstanceToMap: true,
+  };
+  const unmarshallOptions = {
+    // Whether to return numbers as a string instead of converting them to native JavaScript numbers.
+    wrapNumbers: false,
+  };
+  const translateConfig = { marshallOptions, unmarshallOptions };
+  const client: DynamoDBClient = new DynamoDBClient({
+    region: AWS_DEFAULT_REGION,
+    credentials: {
+      accessKeyId: AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: AWS_SECRET_ACCESS_KEY || '',
+    },
+  });
+
+  return DynamoDBDocumentClient.from(client, translateConfig);
+};
+const docClient: DynamoDBClient = createDynamoDbClient();
+
+// const client = new DynamoDBClient({region: AWS_DEFAULT_REGION,});
+// const docClient = DynamoDBDocumentClient.from(client);
 
 export async function createItem<T extends Record<string, Item>>({ item, tableName }: { item: T, tableName: string }) {
   const params = {
@@ -31,7 +57,9 @@ export async function readAllItems<T extends Record<string, Item>>({ tableName }
   const params = {
     TableName: tableName,
   };
+  console.log('params=', params);
   const { Items } = await docClient.send(new ScanCommand(params));
+  console.log('Items=', Items);
   if (Items === undefined) {
     throw new Error('Items is undefined.');
   } else {
