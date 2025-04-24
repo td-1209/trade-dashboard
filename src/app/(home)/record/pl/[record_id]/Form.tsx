@@ -170,15 +170,15 @@ export function RecordForm({ recordId }: RecordFormProps) {
           newErrors.initialLowerExitPrice = '注文/決済の大小';
         }
       }
-      // リスクリワードとpipsが既定値を満たすか検証
-      if (riskReward !== null && parseFloat(riskReward) < 3) {
-        newErrors.initialUpperExitPrice = 'リワード不足';
-        newErrors.initialLowerExitPrice = 'リワード不足';
-      }
-      if (lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 150) {
-        newErrors.initialUpperExitPrice = 'リスク過剰';
-        newErrors.initialLowerExitPrice = 'リスク過剰';
-      }
+      // // リスクリワードとpipsが既定値を満たすか検証
+      // if (riskReward !== null && parseFloat(riskReward) < 3) {
+      //   newErrors.initialUpperExitPrice = 'リワード不足';
+      //   newErrors.initialLowerExitPrice = 'リワード不足';
+      // }
+      // if (lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 150) {
+      //   newErrors.initialUpperExitPrice = 'リスク過剰';
+      //   newErrors.initialLowerExitPrice = 'リスク過剰';
+      // }
     }
 
     // エラーの状態更新
@@ -382,10 +382,10 @@ export function RecordForm({ recordId }: RecordFormProps) {
           </div>
           <div className='flex space-x-5'>
             <div className='flex-1'>
-              <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } message={ riskReward !== null && parseFloat(riskReward) < 3 && '3倍以上' } />
+              <ItemDisplay label={'リスクリワード'} value={ riskReward !== null && riskReward.toString() } />
             </div>
             <div className='flex-1'>
-              <ItemDisplay label={'損失pips'} value={ lossCutPips !== null && lossCutPips.toString() } message= { lossCutPips !== null && Math.abs(parseFloat(lossCutPips)) > 150 && '150pips未満' } />
+              <ItemDisplay label={'損失pips'} value={ lossCutPips !== null && lossCutPips.toString() } />
             </div>
           </div>
           <TextAreaForm label={'判断'} name={'reason'} value={formData.reason} onChange={handleChangeStringForm} errorMessage={errors.reason} />
@@ -402,7 +402,7 @@ export function RecordForm({ recordId }: RecordFormProps) {
 interface ItemDisplayProps {
   label: string;
   value:string | false;
-  message: string | false; 
+  message?: string | false; 
 }
 
 const ItemDisplay: React.FC<ItemDisplayProps> = ({ label, value, message }) => {
