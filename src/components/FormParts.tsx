@@ -16,13 +16,11 @@ export const TextForm: React.FC<TextFormProps> = ({
   value,
   onChange,
   placeholder,
-  errorMessage
+  errorMessage,
 }) => {
   return (
     <div className='py-1'>
-      <label className='block text-sm text-lightGray'>
-        {label}
-      </label>
+      <label className='block text-sm text-lightGray'>{label}</label>
       <input
         type='text'
         name={name}
@@ -32,7 +30,7 @@ export const TextForm: React.FC<TextFormProps> = ({
         placeholder={placeholder}
       />
       <div>
-        {errorMessage? (
+        {errorMessage ? (
           <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
           <p className='text-sm text-transparent'>&#8203;</p>
@@ -49,23 +47,23 @@ export const TextAreaForm: React.FC<TextFormProps> = ({
   onChange,
   placeholder,
   errorMessage,
-  height = 80
+  height = 80,
 }) => {
   return (
     <div className='py-1'>
-      <label className='block text-sm text-lightGray'>
-        {label}
-      </label>
+      <label className='block text-sm text-lightGray'>{label}</label>
       <textarea
         name={name}
         value={value}
         onChange={onChange}
-        className={'block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y]'}
+        className={
+          'block w-full px-2 py-2 rounded-md bg-darkGray placeholder:text-lightGray focus:outline-none focus:bg-black text-white resize-y]'
+        }
         style={{ height: `${height}px` }}
         placeholder={placeholder}
       />
       <div>
-        {errorMessage? (
+        {errorMessage ? (
           <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
           <p className='text-sm text-transparent'>&#8203;</p>
@@ -82,7 +80,7 @@ interface NumberFormProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   errorMessage?: string;
-  isAttention? : boolean;
+  isAttention?: boolean;
 }
 
 export const NumberForm: React.FC<NumberFormProps> = ({
@@ -92,11 +90,15 @@ export const NumberForm: React.FC<NumberFormProps> = ({
   onChange,
   placeholder,
   errorMessage,
-  isAttention = false
+  isAttention = false,
 }) => {
   return (
     <div className='py-1'>
-      <label className={`block text-sm ${isAttention ? 'text-attention' : 'text-lightGray'}`}>
+      <label
+        className={`block text-sm ${
+          isAttention ? 'text-attention' : 'text-lightGray'
+        }`}
+      >
         {label}
       </label>
       <input
@@ -108,7 +110,7 @@ export const NumberForm: React.FC<NumberFormProps> = ({
         placeholder={placeholder}
       />
       <div>
-        {errorMessage? (
+        {errorMessage ? (
           <p className='text-sm text-negative'>{errorMessage}</p>
         ) : (
           <p className='text-sm text-transparent'>&#8203;</p>
@@ -134,13 +136,11 @@ export const SelectForm: React.FC<SelectFormProps> = ({
   value,
   onChange,
   options,
-  errorMessage
+  errorMessage,
 }) => {
   return (
     <div className='py-1'>
-      <label className='block text-sm text-lightGray'>
-        {label}
-      </label>
+      <label className='block text-sm text-lightGray'>{label}</label>
       <select
         name={name}
         value={value}
@@ -179,13 +179,11 @@ export const RadioForm: React.FC<RadioFormProps> = ({
   value,
   onChange,
   options,
-  errorMessage
+  errorMessage,
 }) => {
   return (
     <div className='py-1'>
-      <label className='block text-sm text-lightGray mb-2'>
-        {label}
-      </label>
+      <label className='block text-sm text-lightGray mb-2'>{label}</label>
       <div className='space-x-5 flex'>
         {options.map((option) => (
           <div key={option.label}>
