@@ -3,7 +3,8 @@
 import { Card } from '@/components/Card';
 import { calculatePips } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
-import { PL } from '@/types/type';
+import { methodOptions, PL } from '@/types/type';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
   Bar,
@@ -161,7 +162,8 @@ export default function AnalysisPage() {
 
     return Array.from(methodMap.entries())
       .map(([method, data]) => ({
-        method,
+        method:
+          methodOptions.find((opt) => opt.value === method)?.label || method,
         win_rate: Math.round((data.wins / data.total) * 100),
         success_cases: data.records
           .filter((r) => (r.profit_loss || 0) >= 0)
@@ -183,10 +185,10 @@ export default function AnalysisPage() {
       .sort((a, b) => b.win_rate - a.win_rate);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return `${date.getMonth() + 1}/${date.getDate()}`;
+  // };
 
   if (isLoading) {
     return (
@@ -237,11 +239,7 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Bar
-              dataKey='profit_loss'
-              fill='#448AFF'
-              name='損益額（¥）'
-            />
+            <Bar dataKey='profit_loss' fill='#448AFF' name='損益額（¥）' />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -272,11 +270,7 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Bar
-              dataKey='pips'
-              fill='#B39DDB'
-              name='pips'
-            />
+            <Bar dataKey='pips' fill='#B39DDB' name='pips' />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -305,7 +299,8 @@ export default function AnalysisPage() {
                 <h5 className='text-positive font-semibold mb-2'>成功例</h5>
                 {method.success_cases.map((record, idx) => (
                   <div key={idx} className='bg-black rounded p-3 mb-2 text-sm'>
-                    <div className='text-white'>
+                    <div className='text-lightGray'>{record.reason_detail}</div>
+                    {/* <div className='text-white'>
                       {record.base_currency}/{record.quote_currency} (
                       {record.position})
                     </div>
@@ -318,9 +313,6 @@ export default function AnalysisPage() {
                     <div className='text-lightGray'>
                       {record.entry} → {record.exit || 'N/A'}
                     </div>
-                    <div className='text-lightGray'>
-                      TP: {record.take_profit} / LC: {record.loss_cut}
-                    </div>
                     {record.exit && record.entry && (
                       <div className='text-positive'>
                         {calculatePips({
@@ -331,7 +323,20 @@ export default function AnalysisPage() {
                         })}{' '}
                         pips
                       </div>
-                    )}
+                    )} */}
+                    {record.result_image &&
+                      record.result_image !== 'unknown' && (
+                        <div className='mt-2'>
+                          <Image
+                            src={record.result_image}
+                            alt='結果画像'
+                            width={150}
+                            height={100}
+                            className='rounded border border-darkGray'
+                            style={{ objectFit: 'contain' }}
+                          />
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
@@ -341,7 +346,8 @@ export default function AnalysisPage() {
                 <h5 className='text-negative font-semibold mb-2'>失敗例</h5>
                 {method.failure_cases.map((record, idx) => (
                   <div key={idx} className='bg-black rounded p-3 mb-2 text-sm'>
-                    <div className='text-white'>
+                    <div className='text-lightGray'>{record.reason_detail}</div>
+                    {/* <div className='text-white'>
                       {record.base_currency}/{record.quote_currency} (
                       {record.position})
                     </div>
@@ -367,7 +373,20 @@ export default function AnalysisPage() {
                         })}{' '}
                         pips
                       </div>
-                    )}
+                    )} */}
+                    {record.result_image &&
+                      record.result_image !== 'unknown' && (
+                        <div className='mt-2'>
+                          <Image
+                            src={record.result_image}
+                            alt='結果画像'
+                            width={150}
+                            height={100}
+                            className='rounded border border-darkGray'
+                            style={{ objectFit: 'contain' }}
+                          />
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>

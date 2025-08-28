@@ -8,49 +8,21 @@ import {
   TextForm,
 } from '@/components/Form';
 import { Modal } from '@/components/Modal';
+import Uploader from '@/components/Uploader';
 import { useFormData } from '@/hooks/formData';
 import {
   convertJSTInputFormatToJSTISOString,
   convertUTCISOStringToJSTInputFormat,
 } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
-import { Currency, PL, Position } from '@/types/type';
+import {
+  currencyOptions,
+  methodOptions,
+  PL,
+  positionOptions,
+} from '@/types/type';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-
-const positionOptions: {
-  value: Position;
-  label: 'ロング' | 'ショート';
-}[] = [
-  { value: 'long', label: 'ロング' },
-  { value: 'short', label: 'ショート' },
-];
-
-const currencyOptions: {
-  value: Currency;
-  label: Currency;
-}[] = [
-  { value: 'USD', label: 'USD' },
-  { value: 'EUR', label: 'EUR' },
-  { value: 'JPY', label: 'JPY' },
-  { value: 'GBP', label: 'GBP' },
-  { value: 'AUD', label: 'AUD' },
-  { value: 'MXN', label: 'MXN' },
-  { value: 'NZD', label: 'NZD' },
-  { value: 'CAD', label: 'CAD' },
-  { value: 'CHF', label: 'CHF' },
-  { value: 'ZAR', label: 'ZAR' },
-];
-
-const methodOptions: {
-  value: string;
-  label: string;
-}[] = [
-  { value: 'elliott', label: 'エリオット' },
-  { value: 'spike', label: '急騰落' },
-  { value: 'range', label: 'レンジ' },
-  { value: 'unknown', label: '手法が未指定' },
-];
 
 export default function Home({
   params,
@@ -384,19 +356,41 @@ export default function Home({
           value={formData.reason_detail}
           onChange={handleChangeStringForm}
         />
+        <Uploader
+          onUpload={(url: string) =>
+            setFormData((prev) => ({ ...prev, reason_image: url }))
+          }
+          currentImage={
+            formData.reason_image !== 'unknown'
+              ? formData.reason_image
+              : undefined
+          }
+        />
         <TextAreaForm
           label={'結果'}
           name={'result_detail'}
           value={formData.result_detail || ''}
           onChange={handleChangeStringForm}
         />
-        <FormButtons
-          leftLabel={'キャンセル'}
-          rightLabel={'登録'}
-          leftAction={handleCancel}
-          showDelete={!!recordId}
-          deleteAction={handleDelete}
+        <Uploader
+          onUpload={(url: string) =>
+            setFormData((prev) => ({ ...prev, result_image: url }))
+          }
+          currentImage={
+            formData.result_image !== 'unknown' && formData.result_image
+              ? formData.result_image
+              : undefined
+          }
         />
+        <div className='py-8'>
+          <FormButtons
+            leftLabel={'キャンセル'}
+            rightLabel={'登録'}
+            leftAction={handleCancel}
+            showDelete={!!recordId}
+            deleteAction={handleDelete}
+          />
+        </div>
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
