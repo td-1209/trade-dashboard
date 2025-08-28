@@ -41,6 +41,16 @@ const currencyOptions: {
   { value: 'ZAR', label: 'ZAR' },
 ];
 
+const methodOptions: {
+  value: string;
+  label: string;
+}[] = [
+  { value: 'elliott', label: 'エリオット' },
+  { value: 'spike', label: '急騰落' },
+  { value: 'range', label: 'レンジ' },
+  { value: 'unknown', label: '手法が未指定' },
+];
+
 export default function Home({
   params,
 }: {
@@ -325,6 +335,15 @@ export default function Home({
               name={'profit_loss'}
               value={formData.profit_loss?.toString() || ''}
               onChange={handleChangeNumberForm}
+            />
+          </div>
+          <div className='flex-1'>
+            <SelectForm
+              label={'メソッド'}
+              name={'method'}
+              value={formData.method}
+              onChange={handleChangeSelectForm}
+              options={methodOptions}
             />
           </div>
         </div>
