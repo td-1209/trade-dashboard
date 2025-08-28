@@ -1,7 +1,7 @@
 'use client';
 
 import { FormTwinButtons } from '@/components/Button';
-import { NumberForm, TextForm } from '@/components/FormParts';
+import { NumberForm, TextForm } from '@/components/Form';
 import { useFormData } from '@/hooks/formData';
 import {
   convertJSTInputFormatToJSTISOString,
@@ -138,47 +138,43 @@ export default function Home({
     return <></>;
   } else {
     return (
-      <div className='px-5 py-5 pb-20'>
-        <form onSubmit={handleSubmit}>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <TextForm
-                label={'実行日時'}
-                name={'executed_at'}
-                value={formData.executed_at}
-                onChange={handleChangeStringForm}
-              />
-            </div>
+      <form onSubmit={handleSubmit}>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <TextForm
+              label={'実行日時'}
+              name={'executed_at'}
+              value={formData.executed_at}
+              onChange={handleChangeStringForm}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <div className='mb-4'>
-                <label className='block text-sm font-medium mb-2'>
-                  決済通貨
-                </label>
-                <div className='bg-darkGray text-white px-3 py-2 rounded-md'>
-                  JPY
-                </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <div className='mb-4'>
+              <label className='block text-sm font-medium mb-2'>決済通貨</label>
+              <div className='bg-darkGray text-white px-3 py-2 rounded-md'>
+                JPY
               </div>
             </div>
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <NumberForm
-                label={'価格'}
-                name={'price'}
-                value={formData.price.toString()}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <NumberForm
+              label={'価格'}
+              name={'price'}
+              value={formData.price.toString()}
+              onChange={handleChangeNumberForm}
+            />
           </div>
-          <FormTwinButtons
-            leftLabel={'キャンセル'}
-            rightLabel={'登録'}
-            leftAction={handleCancel}
-          />
-        </form>
-      </div>
+        </div>
+        <FormTwinButtons
+          leftLabel={'キャンセル'}
+          rightLabel={'登録'}
+          leftAction={handleCancel}
+        />
+      </form>
     );
   }
 }

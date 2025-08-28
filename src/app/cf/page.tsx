@@ -1,12 +1,12 @@
 'use client';
 
 import { SingleButton } from '@/components/Button';
+import { Card } from '@/components/Card';
 import {
   convertJSTInputFormatToDisplayFormat,
   convertUTCISOStringToJSTInputFormat,
 } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -53,20 +53,20 @@ export default function Home() {
   } else {
     return (
       <>
-        <div className='grid grid-cols-1 px-4 gap-4 pb-20'>
-          <div className='flex justify-end py-4'>
+        <div className='grid grid-cols-1 gap-4'>
+          <div className='fixed top-4 right-4 z-10'>
             <SingleButton label='追加' action={handleNewCFClick} />
           </div>
-          {displayRecords.map((item, index) => (
-            <Link key={index} href={`/cf/${item.id}`}>
-              <div className='bg-darkGray rounded-lg px-5 py-3 w-full h-full'>
+          <div className='grid grid-cols-1 gap-4 pt-16'>
+            {displayRecords.map((item, index) => (
+              <Card key={index} href={`/cf/${item.id}`}>
                 <p className='text-xl text-lightGray'>{item.executed_at}</p>
                 <p className='text-positive'>
                   {item.quote_currency}　¥{item.price.toLocaleString()}
                 </p>
-              </div>
-            </Link>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
       </>
     );

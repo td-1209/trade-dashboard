@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const tabs = [
-  { name: '損益', path: '/', icon: <ProfitLossIconButton /> },
+  { name: '損益', path: '/pl', icon: <ProfitLossIconButton /> },
   { name: '出入', path: '/cf', icon: <CashFlowIconButton /> },
   { name: '分析', path: '/report', icon: <AnalysisIconButton /> },
 ];
@@ -24,12 +24,12 @@ export const TabBar = () => {
             <li key={tab.path}>
               <Link href={tab.path}>
                 <span
-                  className={`pt-3 pb-7 flex flex-col items-center justify-center ${
+                  className={`py-3 flex flex-col items-center justify-center ${
                     pathname === tab.path ? 'text-secondary' : 'text-lightGray'
                   }`}
                 >
                   {tab.icon}
-                  {tab.name}
+                  <span className='text-xs'>{tab.name}</span>
                 </span>
               </Link>
             </li>

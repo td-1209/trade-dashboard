@@ -1,14 +1,15 @@
 'use client';
 
+import { Card } from '@/components/Card';
 import { calculatePips } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
 import { PL } from '@/types/type';
 import { useEffect, useState } from 'react';
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -126,11 +127,15 @@ export default function AnalysisPage() {
 
     return Array.from(monthlyMap.entries())
       .map(([month, data]) => ({
-        month: month.replace('-', '/'),
+        month: parseInt(month.split('-')[1]) + '月',
         profit_loss: data.profit_loss,
         pips: data.pips,
       }))
-      .sort((a, b) => a.month.localeCompare(b.month))
+      .sort((a, b) => {
+        const monthA = parseInt(a.month.replace('月', ''));
+        const monthB = parseInt(b.month.replace('月', ''));
+        return monthA - monthB;
+      })
       .slice(-6);
   };
 
@@ -192,9 +197,9 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className='px-4 pb-20 space-y-6'>
+    <div className='space-y-6'>
       {/* 累積損益額 */}
-      <div className='bg-darkGray rounded-lg p-6'>
+      <Card padding='large'>
         <h2 className='text-xl font-bold text-white mb-2'>累積損益額</h2>
         <p
           className={`text-3xl font-bold ${
@@ -204,18 +209,26 @@ export default function AnalysisPage() {
           ¥{cumulativeProfit.toLocaleString()}
         </p>
         <p className='text-lightGray text-sm mt-1'>2025年8月以降</p>
-      </div>
+      </Card>
 
       {/* 月別損益グラフ */}
-      <div className='bg-darkGray rounded-lg p-6'>
+      <Card padding='large'>
         <h3 className='text-lg font-bold text-white mb-4'>
-          月別損益額（直近6ヶ月）
+          月別損益額（直近6ヶ月）（万円）
         </h3>
         <ResponsiveContainer width='100%' height={300}>
-          <LineChart data={monthlyProfitData}>
+          <BarChart data={monthlyProfitData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
             <XAxis dataKey='month' stroke='#757575' />
-            <YAxis stroke='#757575' />
+            <YAxis
+              stroke='#757575'
+              orientation='left'
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+              axisLine={false}
+              tickLine={false}
+              tick={{ dx: -15 }}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#333333',
@@ -224,28 +237,33 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Legend />
-            <Line
-              type='monotone'
+            <Bar
               dataKey='profit_loss'
-              stroke='#448AFF'
-              strokeWidth={2}
+              fill='#448AFF'
               name='損益額（¥）'
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* 月別pipsグラフ */}
-      <div className='bg-darkGray rounded-lg p-6'>
+      <Card padding='large'>
         <h3 className='text-lg font-bold text-white mb-4'>
           月別pips（直近6ヶ月）
         </h3>
         <ResponsiveContainer width='100%' height={300}>
-          <LineChart data={monthlyPipsData}>
+          <BarChart data={monthlyPipsData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
             <XAxis dataKey='month' stroke='#757575' />
-            <YAxis stroke='#757575' />
+            <YAxis
+              stroke='#757575'
+              orientation='left'
+              tickFormatter={(value) => `${Math.round(value)}`}
+              axisLine={false}
+              tickLine={false}
+              tick={{ dx: -15 }}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#333333',
@@ -254,17 +272,14 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Legend />
-            <Line
-              type='monotone'
+            <Bar
               dataKey='pips'
-              stroke='#B39DDB'
-              strokeWidth={2}
+              fill='#B39DDB'
               name='pips'
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* 手法別勝率分析 */}
       <div className='space-y-4'>
@@ -272,7 +287,7 @@ export default function AnalysisPage() {
           手法別勝率（直近3ヶ月）
         </h3>
         {methodAnalysis.map((method, index) => (
-          <div key={index} className='bg-darkGray rounded-lg p-6'>
+          <Card key={index} padding='large'>
             <div className='flex justify-between items-center mb-4'>
               <h4 className='text-white font-bold'>{method.method}</h4>
               <span
@@ -357,7 +372,7 @@ export default function AnalysisPage() {
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

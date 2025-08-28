@@ -6,7 +6,7 @@ import {
   SelectForm,
   TextAreaForm,
   TextForm,
-} from '@/components/FormParts';
+} from '@/components/Form';
 import { useFormData } from '@/hooks/formData';
 import {
   convertJSTInputFormatToJSTISOString,
@@ -170,7 +170,7 @@ export default function Home({
           }
         }
         // 遷移
-        router.push('/');
+        router.push('/pl');
       } catch (error) {
         console.error('データベース操作エラー:', error);
       }
@@ -181,7 +181,7 @@ export default function Home({
   // フォームのキャンセル処理
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    router.push('/');
+    router.push('/pl');
   };
 
   // 初回描画時の処理（遷移時）
@@ -232,122 +232,120 @@ export default function Home({
     return <></>;
   } else {
     return (
-      <div className='px-5 py-5 pb-20'>
-        <form onSubmit={handleSubmit}>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <SelectForm
-                label={'ポジション'}
-                name={'position'}
-                value={formData.position}
-                onChange={handleChangeSelectForm}
-                options={positionOptions}
-              />
-            </div>
+      <form onSubmit={handleSubmit}>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <SelectForm
+              label={'ポジション'}
+              name={'position'}
+              value={formData.position}
+              onChange={handleChangeSelectForm}
+              options={positionOptions}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <TextForm
-                label={'注文日時'}
-                name={'entered_at'}
-                value={formData.entered_at}
-                onChange={handleChangeStringForm}
-              />
-            </div>
-            <div className='flex-1'>
-              <TextForm
-                label={'決済日時'}
-                name={'exited_at'}
-                value={formData.exited_at || ''}
-                onChange={handleChangeStringForm}
-              />
-            </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <TextForm
+              label={'注文日時'}
+              name={'entered_at'}
+              value={formData.entered_at}
+              onChange={handleChangeStringForm}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <SelectForm
-                label={'基軸通貨'}
-                name={'base_currency'}
-                value={formData.base_currency}
-                onChange={handleChangeSelectForm}
-                options={currencyOptions}
-              />
-            </div>
-            <div className='flex-1'>
-              <SelectForm
-                label={'決済通貨'}
-                name={'quote_currency'}
-                value={formData.quote_currency || ''}
-                onChange={handleChangeSelectForm}
-                options={currencyOptions}
-              />
-            </div>
+          <div className='flex-1'>
+            <TextForm
+              label={'決済日時'}
+              name={'exited_at'}
+              value={formData.exited_at || ''}
+              onChange={handleChangeStringForm}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <NumberForm
-                label={'利確レート'}
-                name={'take_profit'}
-                value={formData.take_profit.toString()}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
-            <div className='flex-1'>
-              <NumberForm
-                label={'損切レート'}
-                name={'loss_cut'}
-                value={formData.loss_cut.toString()}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <SelectForm
+              label={'基軸通貨'}
+              name={'base_currency'}
+              value={formData.base_currency}
+              onChange={handleChangeSelectForm}
+              options={currencyOptions}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <NumberForm
-                label={'注文レート'}
-                name={'entry'}
-                value={formData.entry.toString()}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
-            <div className='flex-1'>
-              <NumberForm
-                label={'決済レート'}
-                name={'exit'}
-                value={formData.exit?.toString() || ''}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
+          <div className='flex-1'>
+            <SelectForm
+              label={'決済通貨'}
+              name={'quote_currency'}
+              value={formData.quote_currency || ''}
+              onChange={handleChangeSelectForm}
+              options={currencyOptions}
+            />
           </div>
-          <div className='flex space-x-5'>
-            <div className='flex-1'>
-              <NumberForm
-                label={'損益額'}
-                name={'profit_loss'}
-                value={formData.profit_loss?.toString() || ''}
-                onChange={handleChangeNumberForm}
-              />
-            </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <NumberForm
+              label={'利確レート'}
+              name={'take_profit'}
+              value={formData.take_profit.toString()}
+              onChange={handleChangeNumberForm}
+            />
           </div>
-          <TextAreaForm
-            label={'判断'}
-            name={'reason_detail'}
-            value={formData.reason_detail}
-            onChange={handleChangeStringForm}
-          />
-          <TextAreaForm
-            label={'結果'}
-            name={'result_detail'}
-            value={formData.result_detail || ''}
-            onChange={handleChangeStringForm}
-          />
-          <FormTwinButtons
-            leftLabel={'キャンセル'}
-            rightLabel={'登録'}
-            leftAction={handleCancel}
-          />
-        </form>
-      </div>
+          <div className='flex-1'>
+            <NumberForm
+              label={'損切レート'}
+              name={'loss_cut'}
+              value={formData.loss_cut.toString()}
+              onChange={handleChangeNumberForm}
+            />
+          </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <NumberForm
+              label={'注文レート'}
+              name={'entry'}
+              value={formData.entry.toString()}
+              onChange={handleChangeNumberForm}
+            />
+          </div>
+          <div className='flex-1'>
+            <NumberForm
+              label={'決済レート'}
+              name={'exit'}
+              value={formData.exit?.toString() || ''}
+              onChange={handleChangeNumberForm}
+            />
+          </div>
+        </div>
+        <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <NumberForm
+              label={'損益額'}
+              name={'profit_loss'}
+              value={formData.profit_loss?.toString() || ''}
+              onChange={handleChangeNumberForm}
+            />
+          </div>
+        </div>
+        <TextAreaForm
+          label={'判断'}
+          name={'reason_detail'}
+          value={formData.reason_detail}
+          onChange={handleChangeStringForm}
+        />
+        <TextAreaForm
+          label={'結果'}
+          name={'result_detail'}
+          value={formData.result_detail || ''}
+          onChange={handleChangeStringForm}
+        />
+        <FormTwinButtons
+          leftLabel={'キャンセル'}
+          rightLabel={'登録'}
+          leftAction={handleCancel}
+        />
+      </form>
     );
   }
 }

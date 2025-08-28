@@ -34,7 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <main className='pt-4 pb-32 px-4'>{children}</main>
           <TabBar />
         </ThemeProvider>
       </body>
