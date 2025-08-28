@@ -55,9 +55,5 @@ erDiagram
         - 最新のレコード上位3件を上から並べる。
         - 表示する情報はbase_currency、quote_currency、entered_at、exited_at、position、entry、exit、take_profit、loss_cut、加えて、lib/calc/calculatePipsの結果
 
-
-
-- データ一括登録処理見直し
-- 削除機能
+一括機能はコマンドに
 - 画像登録
-- レイアウト調整
