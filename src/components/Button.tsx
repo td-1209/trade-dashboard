@@ -48,31 +48,48 @@ export const TwinButtons: React.FC<TwinButtonsType> = ({
   );
 };
 
-interface FormTwinButtonsType {
+interface FormButtonsType {
   leftLabel: string;
   rightLabel: string;
   leftAction: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  deleteLabel?: string;
+  deleteAction?: () => void;
+  showDelete?: boolean;
 }
 
-export const FormTwinButtons: React.FC<FormTwinButtonsType> = ({
+export const FormButtons: React.FC<FormButtonsType> = ({
   leftLabel,
   rightLabel,
   leftAction,
+  deleteLabel = '削除',
+  deleteAction,
+  showDelete = false,
 }) => {
   return (
-    <div className='flex justify-between w-full px-5'>
-      <button
-        onClick={leftAction}
-        className='w-[120px] rounded-lg py-2 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
-      >
-        {leftLabel}
-      </button>
-      <button
-        type='submit'
-        className='w-[120px] rounded-lg py-2 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
-      >
-        {rightLabel}
-      </button>
+    <div className='space-y-4'>
+      <div className='flex justify-between w-full gap-2'>
+        {showDelete && deleteAction && (
+          <button
+            type='button'
+            onClick={deleteAction}
+            className='w-[120px] rounded-lg py-2 text-attentionButtonText bg-attentionButtonBG hover:bg-attentionButtonBGTrans active:bg-attentionButtonBGActive active:transform active:scale-99 transition-all duration-200'
+          >
+            {deleteLabel}
+          </button>
+        )}
+        <button
+          onClick={leftAction}
+          className='w-[120px] rounded-lg py-2 text-cancelButtonText bg-cancelButtonBG hover:bg-cancelButtonBGTrans active:bg-cancelButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        >
+          {leftLabel}
+        </button>
+        <button
+          type='submit'
+          className='w-[120px] rounded-lg py-2 text-secondaryButtonText bg-secondaryButtonBG hover:bg-secondaryButtonBGTrans active:bg-secondaryButtonBGActive active:transform active:scale-99 transition-all duration-200'
+        >
+          {rightLabel}
+        </button>
+      </div>
     </div>
   );
 };
@@ -196,6 +213,26 @@ export const MethodIconButton = () => {
         d='m21.71 20.29l-1.42 1.42a1 1 0 0 1-1.41 0L7 9.85A3.8 3.8 0 0 1 6 10a4 4 0 0 1-3.78-5.3l2.54 2.54l.53-.53l1.42-1.42l.53-.53L4.7 2.22A4 4 0 0 1 10 6a3.8 3.8 0 0 1-.15 1l11.86 11.88a1 1 0 0 1 0 1.41M2.29 18.88a1 1 0 0 0 0 1.41l1.42 1.42a1 1 0 0 0 1.41 0l5.47-5.46l-2.83-2.83M20 2l-4 2v2l-2.17 2.17l2 2L18 8h2l2-4Z'
       ></path>
     </svg>
+  );
+};
+
+interface DeleteButtonProps {
+  label: string;
+  onClick: () => void;
+}
+
+export const DeleteButton: React.FC<DeleteButtonProps> = ({
+  label,
+  onClick,
+}) => {
+  return (
+    <button
+      type='button'
+      onClick={onClick}
+      className='w-[120px] rounded-lg py-2 text-attentionButtonText bg-attentionButtonBG hover:bg-attentionButtonBGTrans active:bg-attentionButtonBGActive active:transform active:scale-99 transition-all duration-200'
+    >
+      {label}
+    </button>
   );
 };
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { FormTwinButtons } from '@/components/Button';
+import { FormButtons } from '@/components/Button';
 import { NumberForm, TextForm } from '@/components/Form';
+import { Modal } from '@/components/Modal';
 import { useFormData } from '@/hooks/formData';
 import {
   convertJSTInputFormatToJSTISOString,
@@ -19,6 +20,7 @@ export default function Home({
 }) {
   const [recordId, setRecordId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   useEffect(() => {
     const getParams = async () => {
@@ -97,6 +99,34 @@ export default function Home({
     router.push('/cf');
   };
 
+  const handleDelete = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!recordId) return;
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('cf').delete().eq('id', recordId);
+
+      if (error) {
+        console.error('削除エラー:', error);
+        return;
+      }
+
+      router.push('/cf');
+    } catch (error) {
+      console.error('削除処理エラー:', error);
+    } finally {
+      setIsModalOpen(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   useEffect(() => {
     if (!recordId) {
       setIsLoading(false);
@@ -169,10 +199,19 @@ export default function Home({
             />
           </div>
         </div>
-        <FormTwinButtons
+        <FormButtons
           leftLabel={'キャンセル'}
           rightLabel={'登録'}
           leftAction={handleCancel}
+          showDelete={!!recordId}
+          deleteAction={handleDelete}
+        />
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onConfirm={handleConfirmDelete}
+          title={'削除確認'}
+          message={'このレコードを削除しますか？この操作は取り消せません。'}
         />
       </form>
     );
