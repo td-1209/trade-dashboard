@@ -17,6 +17,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import {
   currencyOptions,
+  domainOptions,
   methodOptions,
   PL,
   positionOptions,
@@ -48,8 +49,8 @@ export default function Home({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const initialItem: PL = {
     id: recordId || '',
-    base_currency: 'USD',
-    quote_currency: 'JPY',
+    base_currency: 'none',
+    quote_currency: 'none',
     entered_at: convertUTCISOStringToJSTInputFormat({
       isoString: now.toISOString(),
     }),
@@ -247,6 +248,15 @@ export default function Home({
     return (
       <form onSubmit={handleSubmit}>
         <div className='flex space-x-5'>
+          <div className='flex-1'>
+            <SelectForm
+              label={'ドメイン'}
+              name={'domain'}
+              value={formData.domain}
+              onChange={handleChangeSelectForm}
+              options={domainOptions}
+            />
+          </div>
           <div className='flex-1'>
             <SelectForm
               label={'ポジション'}

@@ -8,7 +8,8 @@ export type Currency =
   | 'NZD'
   | 'CAD'
   | 'CHF'
-  | 'ZAR';
+  | 'ZAR'
+  | 'none';
 
 export type Position = 'long' | 'short';
 
@@ -53,6 +54,7 @@ export const currencyOptions: {
   value: Currency;
   label: Currency;
 }[] = [
+  { value: 'none', label: 'none' },
   { value: 'USD', label: 'USD' },
   { value: 'EUR', label: 'EUR' },
   { value: 'JPY', label: 'JPY' },
@@ -63,6 +65,15 @@ export const currencyOptions: {
   { value: 'CAD', label: 'CAD' },
   { value: 'CHF', label: 'CHF' },
   { value: 'ZAR', label: 'ZAR' },
+];
+
+export const domainOptions: {
+  value: Domain;
+  label: string;
+}[] = [
+  { value: 'fx', label: '外貨' },
+  { value: 'stock', label: '株式' },
+  { value: 'gold', label: '金' },
 ];
 
 export const methodOptions: {
