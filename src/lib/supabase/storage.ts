@@ -1,15 +1,30 @@
-// Resize image to 20% of original size
-function resizeImage(file: File, scale: number = 0.2): Promise<File> {
+// Resize image to {scale*100}% of original size
+function resizeImage(file: File, scale: number = 0.5): Promise<File> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     const img = new Image();
 
     img.onload = () => {
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
+      // Calculate crop dimensions (remove 1/5 from top and bottom)
+      const cropHeight = img.height / 5;
+      const croppedHeight = img.height - 2 * cropHeight;
 
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.width = img.width * scale;
+      canvas.height = croppedHeight * scale;
+
+      // Draw cropped and resized image
+      ctx.drawImage(
+        img,
+        0,
+        cropHeight, // sx, sy (source x, y - start from cropHeight to skip top)
+        img.width,
+        croppedHeight, // sw, sh (source width, height - use cropped height)
+        0,
+        0, // dx, dy (destination x, y)
+        canvas.width,
+        canvas.height // dw, dh (destination width, height)
+      );
 
       canvas.toBlob(
         (blob) => {
@@ -48,9 +63,13 @@ export async function uploadImage(file: File): Promise<string> {
     console.error('Upload API error:', {
       status: response.status,
       statusText: response.statusText,
-      error: error
+      error: error,
     });
-    throw new Error(error.details ? `${error.error}: ${error.details}` : error.error || 'Upload failed');
+    throw new Error(
+      error.details
+        ? `${error.error}: ${error.details}`
+        : error.error || 'Upload failed'
+    );
   }
 
   const data = await response.json();
@@ -63,7 +82,7 @@ export async function deleteImage(url: string): Promise<void> {
   // Extract filename from the URL
   const urlParts = url.split('/');
   const fileName = urlParts[urlParts.length - 1];
-  
+
   if (!fileName || fileName === 'images') {
     throw new Error('Invalid image URL - cannot extract filename');
   }
