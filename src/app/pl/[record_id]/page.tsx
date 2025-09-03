@@ -370,6 +370,9 @@ export default function Home({
           onUpload={(url: string) =>
             setFormData((prev) => ({ ...prev, reason_image: url }))
           }
+          onDelete={() =>
+            setFormData((prev) => ({ ...prev, reason_image: null }))
+          }
           currentImage={
             formData.reason_image !== null ? formData.reason_image : undefined
           }
@@ -383,6 +386,9 @@ export default function Home({
         <Uploader
           onUpload={(url: string) =>
             setFormData((prev) => ({ ...prev, result_image: url }))
+          }
+          onDelete={() =>
+            setFormData((prev) => ({ ...prev, result_image: null }))
           }
           currentImage={
             formData.result_image !== 'unknown' && formData.result_image
