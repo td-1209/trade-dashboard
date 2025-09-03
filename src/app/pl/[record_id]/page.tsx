@@ -67,8 +67,8 @@ export default function Home({
     loss_cut: 0.998,
     domain: 'fx',
     method: 'unknown',
-    reason_image: 'unknown',
-    result_image: 'unknown',
+    reason_image: null,
+    result_image: null,
   };
   const [
     formData,
@@ -371,9 +371,7 @@ export default function Home({
             setFormData((prev) => ({ ...prev, reason_image: url }))
           }
           currentImage={
-            formData.reason_image !== 'unknown'
-              ? formData.reason_image
-              : undefined
+            formData.reason_image !== null ? formData.reason_image : undefined
           }
         />
         <TextAreaForm

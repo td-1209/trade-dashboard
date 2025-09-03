@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS pl (
     loss_cut DECIMAL(20,8) NOT NULL,
     domain TEXT NOT NULL CHECK (domain IN ('fx', 'stock', 'gold')),
     method TEXT NOT NULL,
-    reason_image TEXT NOT NULL, -- 画像パス
+    reason_image TEXT, -- 画像パス
     result_image TEXT, -- 画像パス
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

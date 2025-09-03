@@ -31,7 +31,7 @@ export interface PL extends Record<string, unknown> {
   loss_cut: number;
   domain: Domain;
   method: string;
-  reason_image: string;
+  reason_image: string | null;
   result_image: string | null;
 }
 
@@ -81,7 +81,6 @@ export const methodOptions: {
   label: string;
 }[] = [
   { value: 'elliott', label: 'エリオット' },
-  { value: 'spike', label: '急騰落' },
   { value: 'range', label: 'レンジ' },
   { value: 'unknown', label: '手法が未指定' },
 ];
