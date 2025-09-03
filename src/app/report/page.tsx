@@ -40,19 +40,16 @@ export default function AnalysisPage() {
   useEffect(() => {
     const fetchData = async () => {
       const supabase = createClient();
-      const august2025 = '2025-08-01T00:00:00';
 
       // PLデータとCFデータを取得
       const { data: plData } = await supabase
         .from('pl')
         .select('*')
-        .gte('entered_at', august2025)
         .order('entered_at', { ascending: false });
 
       const { data: cfData } = await supabase
         .from('cf')
         .select('*')
-        .gte('executed_at', august2025)
         .order('executed_at', { ascending: false });
 
       if (plData && cfData) {
@@ -69,7 +66,7 @@ export default function AnalysisPage() {
 
         // 月次データの計算（直近6ヶ月）
         const monthlyProfits = calculateMonthlyData(plData);
-        const monthlyPips = calculateMonthlyData(plData);
+        const monthlyPips = calculateMonthlyPipsData(plData); // FX取引のみ
         setMonthlyProfitData(monthlyProfits);
         setMonthlyPipsData(monthlyPips);
 
@@ -90,15 +87,10 @@ export default function AnalysisPage() {
   }, []);
 
   const calculateMonthlyData = (plData: PL[]): MonthlyData[] => {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const recentData = plData.filter(
-      (record) => new Date(record.entered_at) >= sixMonthsAgo
-    );
+    const recentData = plData;
     const monthlyMap = new Map<
       string,
-      { profit_loss: number; pips: number; count: number }
+      { profit_loss: number; count: number }
     >();
 
     recentData.forEach((record) => {
@@ -108,12 +100,45 @@ export default function AnalysisPage() {
       ).padStart(2, '0')}`;
 
       if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { profit_loss: 0, pips: 0, count: 0 });
+        monthlyMap.set(monthKey, { profit_loss: 0, count: 0 });
       }
 
       const monthData = monthlyMap.get(monthKey)!;
       monthData.profit_loss += record.profit_loss || 0;
+      monthData.count++;
+    });
 
+    return Array.from(monthlyMap.entries())
+      .map(([month, data]) => ({
+        month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
+        profit_loss: data.profit_loss,
+        pips: 0, // pipsは別関数で計算
+      }))
+      .sort((a, b) => {
+        const [yearA, monthA] = a.month.split('/').map(Number);
+        const [yearB, monthB] = b.month.split('/').map(Number);
+        return yearA !== yearB ? yearA - yearB : monthA - monthB;
+      });
+  };
+
+  // FX取引のみを対象としたpips計算（domain=fx）
+  const calculateMonthlyPipsData = (plData: PL[]): MonthlyData[] => {
+    const fxData = plData.filter(
+      (record) => record.domain === 'fx' // FX取引のみ
+    );
+    const monthlyMap = new Map<string, { pips: number; count: number }>();
+
+    fxData.forEach((record) => {
+      const date = new Date(record.entered_at);
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, '0')}`;
+
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, { pips: 0, count: 0 });
+      }
+
+      const monthData = monthlyMap.get(monthKey)!;
       if (record.exit && record.entry) {
         const pips = calculatePips({
           quoteCurrency: record.quote_currency || 'USD',
@@ -128,16 +153,15 @@ export default function AnalysisPage() {
 
     return Array.from(monthlyMap.entries())
       .map(([month, data]) => ({
-        month: parseInt(month.split('-')[1]) + '月',
-        profit_loss: data.profit_loss,
+        month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
+        profit_loss: 0, // pipsデータなので0
         pips: data.pips,
       }))
       .sort((a, b) => {
-        const monthA = parseInt(a.month.replace('月', ''));
-        const monthB = parseInt(b.month.replace('月', ''));
-        return monthA - monthB;
-      })
-      .slice(-6);
+        const [yearA, monthA] = a.month.split('/').map(Number);
+        const [yearB, monthB] = b.month.split('/').map(Number);
+        return yearA !== yearB ? yearA - yearB : monthA - monthB;
+      });
   };
 
   const calculateMethodAnalysis = (plData: PL[]): MethodAnalysis[] => {
@@ -182,7 +206,33 @@ export default function AnalysisPage() {
           )
           .slice(0, 3),
       }))
-      .sort((a, b) => b.win_rate - a.win_rate);
+      .sort((a, b) => {
+        // 日本語の手法名を英語の値にマッピング
+        const getMethodValue = (methodName: string) => {
+          const mapping: { [key: string]: string } = {
+            エリオット: 'elliott',
+            レンジ: 'range',
+            手法が未指定: 'unknown',
+          };
+          return mapping[methodName] || methodName;
+        };
+
+        const aMethodValue = getMethodValue(a.method);
+        const bMethodValue = getMethodValue(b.method);
+
+        const aIndex = methodOptions.findIndex(
+          (option) => option.value === aMethodValue
+        );
+        const bIndex = methodOptions.findIndex(
+          (option) => option.value === bMethodValue
+        );
+
+        // methodOptionsにない場合は最後に
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+
+        return aIndex - bIndex;
+      });
   };
 
   // const formatDate = (dateString: string) => {
@@ -216,7 +266,7 @@ export default function AnalysisPage() {
       {/* 月別損益グラフ */}
       <Card padding='large'>
         <h3 className='text-lg font-bold text-white mb-4'>
-          月別損益額（直近6ヶ月）（万円）
+          月別損益額（全期間）（万円）
         </h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyProfitData}>
@@ -247,7 +297,7 @@ export default function AnalysisPage() {
       {/* 月別pipsグラフ */}
       <Card padding='large'>
         <h3 className='text-lg font-bold text-white mb-4'>
-          月別pips（直近6ヶ月）
+          月別pips（全期間・FX取引のみ）
         </h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyPipsData}>
@@ -286,107 +336,114 @@ export default function AnalysisPage() {
               <h4 className='text-white font-bold'>{method.method}</h4>
               <span
                 className={`text-xl font-bold ${
-                  method.win_rate >= 50 ? 'text-positive' : 'text-negative'
+                  method.win_rate > 0 ? 'text-positive' : 'text-negative'
                 }`}
               >
                 {method.win_rate}%
               </span>
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-6'>
               {/* 成功例 */}
               <div>
-                <h5 className='text-positive font-semibold mb-2'>成功例</h5>
+                <h5 className='text-positive font-semibold mb-3'>成功例</h5>
                 {method.success_cases.map((record, idx) => (
-                  <div key={idx} className='bg-black rounded p-3 mb-2 text-sm'>
-                    <div className='text-lightGray'>{record.reason_detail}</div>
-                    {/* <div className='text-white'>
-                      {record.base_currency}/{record.quote_currency} (
-                      {record.position})
-                    </div>
-                    <div className='text-lightGray'>
-                      {formatDate(record.entered_at)} →{' '}
-                      {record.exited_at
-                        ? formatDate(record.exited_at)
-                        : '取引中'}
-                    </div>
-                    <div className='text-lightGray'>
-                      {record.entry} → {record.exit || 'N/A'}
-                    </div>
-                    {record.exit && record.entry && (
-                      <div className='text-positive'>
-                        {calculatePips({
-                          quoteCurrency: record.quote_currency || 'USD',
-                          entryPrice: record.entry,
-                          exitPrice: record.exit,
-                          position: record.position,
-                        })}{' '}
-                        pips
-                      </div>
-                    )} */}
-                    {record.result_image &&
-                      record.result_image !== 'unknown' && (
-                        <div className='mt-2'>
-                          <Image
-                            src={record.result_image}
-                            alt='結果画像'
-                            width={150}
-                            height={100}
-                            className='rounded border border-darkGray'
-                            style={{ objectFit: 'contain' }}
-                          />
+                  <div key={idx} className='bg-black rounded p-4 mb-3'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      {/* Reason */}
+                      <div className='flex flex-col justify-between'>
+                        <div>
+                          <h6 className='text-white font-medium mb-2'>理由</h6>
+                          <div className='text-lightGray text-sm mb-2'>
+                            {record.reason_detail}
+                          </div>
                         </div>
-                      )}
+                        {record.reason_image &&
+                          record.reason_image !== 'unknown' && (
+                            <Image
+                              src={record.reason_image}
+                              alt='理由画像'
+                              width={150}
+                              height={100}
+                              className='rounded border border-darkGray mt-auto'
+                              style={{ objectFit: 'contain' }}
+                            />
+                          )}
+                      </div>
+
+                      {/* Result */}
+                      <div className='flex flex-col justify-between'>
+                        <div>
+                          <h6 className='text-white font-medium mb-2'>結果</h6>
+                          <div className='text-lightGray text-sm mb-2'>
+                            {record.result_detail}
+                          </div>
+                        </div>
+                        {record.result_image &&
+                          record.result_image !== 'unknown' && (
+                            <Image
+                              src={record.result_image}
+                              alt='結果画像'
+                              width={150}
+                              height={100}
+                              className='rounded border border-darkGray mt-auto'
+                              style={{ objectFit: 'contain' }}
+                            />
+                          )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
 
               {/* 失敗例 */}
               <div>
-                <h5 className='text-negative font-semibold mb-2'>失敗例</h5>
+                <h5 className='text-negative font-semibold mb-3'>失敗例</h5>
                 {method.failure_cases.map((record, idx) => (
-                  <div key={idx} className='bg-black rounded p-3 mb-2 text-sm'>
-                    <div className='text-lightGray'>{record.reason_detail}</div>
-                    {/* <div className='text-white'>
-                      {record.base_currency}/{record.quote_currency} (
-                      {record.position})
-                    </div>
-                    <div className='text-lightGray'>
-                      {formatDate(record.entered_at)} →{' '}
-                      {record.exited_at
-                        ? formatDate(record.exited_at)
-                        : '取引中'}
-                    </div>
-                    <div className='text-lightGray'>
-                      {record.entry} → {record.exit || 'N/A'}
-                    </div>
-                    <div className='text-lightGray'>
-                      TP: {record.take_profit} / LC: {record.loss_cut}
-                    </div>
-                    {record.exit && record.entry && (
-                      <div className='text-negative'>
-                        {calculatePips({
-                          quoteCurrency: record.quote_currency || 'USD',
-                          entryPrice: record.entry,
-                          exitPrice: record.exit,
-                          position: record.position,
-                        })}{' '}
-                        pips
-                      </div>
-                    )} */}
-                    {record.result_image &&
-                      record.result_image !== 'unknown' && (
-                        <div className='mt-2'>
-                          <Image
-                            src={record.result_image}
-                            alt='結果画像'
-                            width={150}
-                            height={100}
-                            className='rounded border border-darkGray'
-                            style={{ objectFit: 'contain' }}
-                          />
+                  <div key={idx} className='bg-black rounded p-4 mb-3'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      {/* Reason */}
+                      <div className='flex flex-col justify-between'>
+                        <div>
+                          <h6 className='text-white font-medium mb-2'>理由</h6>
+                          <div className='text-lightGray text-sm mb-2'>
+                            {record.reason_detail}
+                          </div>
                         </div>
-                      )}
+                        {record.reason_image &&
+                          record.reason_image !== 'unknown' && (
+                            <Image
+                              src={record.reason_image}
+                              alt='理由画像'
+                              width={150}
+                              height={100}
+                              className='rounded border border-darkGray mt-auto'
+                              style={{ objectFit: 'contain' }}
+                            />
+                          )}
+                      </div>
+
+                      {/* Result */}
+                      <div className='flex flex-col justify-between'>
+                        <div>
+                          <h6 className='text-white font-medium mb-2'>結果</h6>
+                          <div className='text-lightGray text-sm mb-2'>
+                            {record.result_detail}
+                          </div>
+                        </div>
+                        {record.result_image &&
+                          record.result_image !== 'unknown' && (
+                            <Image
+                              src={record.result_image}
+                              alt='結果画像'
+                              width={150}
+                              height={100}
+                              className='rounded border border-darkGray mt-auto'
+                              style={{ objectFit: 'contain' }}
+                            />
+                          )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
