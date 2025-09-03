@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { format, parse } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Currency, Domain, Position } from '../types/type';
 
 // 環境変数を直接読み込み
 const loadEnvFile = () => {
@@ -9,7 +10,7 @@ const loadEnvFile = () => {
     const envPath = path.join(process.cwd(), '.env.local');
     if (fs.existsSync(envPath)) {
       const envContent = fs.readFileSync(envPath, 'utf-8');
-      envContent.split('\n').forEach(line => {
+      envContent.split('\n').forEach((line) => {
         const [key, value] = line.split('=');
         if (key && value) {
           process.env[key.trim()] = value.trim();
@@ -24,11 +25,11 @@ const loadEnvFile = () => {
 loadEnvFile();
 
 interface PlRow {
-  base_currency: string;
-  quote_currency: string;
+  base_currency: Currency;
+  quote_currency: Currency;
   entered_at: string;
   exited_at: string;
-  position: 'long' | 'short';
+  position: Position;
   entry: number;
   exit: number;
   profit_loss: number;
@@ -36,10 +37,10 @@ interface PlRow {
   result_detail: string;
   take_profit: number;
   loss_cut: number;
-  domain: 'fx' | 'stock' | 'gold';
+  domain: Domain;
   method: string;
-  reason_image: string;
-  result_image: string;
+  reason_image: string | null;
+  result_image: string | null;
 }
 
 interface CfRow {
@@ -50,28 +51,34 @@ interface CfRow {
 
 function parsePlCSVRow(row: string): PlRow {
   const fields = row.split(',');
+
+  // 必須フィールドが空の場合はスキップ
+  if (!fields[0] || !fields[1] || !fields[2] || !fields[3] || !fields[4]) {
+    throw new Error('Missing required fields in row');
+  }
+
   return {
-    base_currency: fields[0],
-    quote_currency: fields[1],
+    base_currency: fields[0] as Currency,
+    quote_currency: fields[1] as Currency,
     entered_at: parseDateTime(fields[2]),
     exited_at: parseDateTime(fields[3]),
-    position: fields[4] as 'long' | 'short',
+    position: fields[4] as Position,
     entry: parseFloat(fields[5]),
     exit: parseFloat(fields[6]),
     profit_loss: parseFloat(fields[7]),
-    reason_detail: fields[8],
-    result_detail: fields[9],
-    take_profit: parseFloat(fields[10]),
-    loss_cut: parseFloat(fields[11]),
-    domain: fields[12] as 'fx' | 'stock' | 'gold',
-    method: fields[13],
-    reason_image: fields[14],
-    result_image: fields[15],
+    reason_detail: fields[8] || '',
+    result_detail: fields[9] || '',
+    take_profit: parseFloat(fields[10]) || 0,
+    loss_cut: parseFloat(fields[11]) || 0,
+    domain: fields[12] as Domain,
+    method: fields[13] || '',
+    reason_image: null,
+    result_image: null,
   };
 }
 
 function parseCfCSVRow(row: string): CfRow {
-  const fields = row.split(',').map(field => field.trim());
+  const fields = row.split(',').map((field) => field.trim());
   return {
     executed_at: parseDateTime(fields[0]),
     price: parseFloat(fields[1]),
@@ -80,8 +87,22 @@ function parseCfCSVRow(row: string): CfRow {
 }
 
 function parseDateTime(dateStr: string): string {
-  const parsedDate = parse(dateStr, 'yyyy-MM-dd_HH-mm', new Date());
-  return format(parsedDate, "yyyy-MM-dd'T'HH:mm:ss") + '+09:00';
+  // 空文字列やundefinedの場合はスキップ
+  if (!dateStr || dateStr.trim() === '') {
+    throw new Error('Empty date string');
+  }
+
+  // 新しいフォーマット: 2025.09.02 16:22 (GMT+3)
+  const parsedDate = parse(dateStr, 'yyyy.MM.dd HH:mm', new Date());
+
+  // パースに失敗した場合
+  if (!isValid(parsedDate)) {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+
+  // GMT+3からUTC0に変換（3時間引く）
+  const utcDate = new Date(parsedDate.getTime() - 3 * 60 * 60 * 1000);
+  return format(utcDate, "yyyy-MM-dd'T'HH:mm:ss") + 'Z';
 }
 
 async function initPlData() {
@@ -118,29 +139,39 @@ async function initPlData() {
     for (const line of dataLines) {
       if (!line.trim()) continue;
 
-      const transaction = parsePlCSVRow(line);
+      try {
+        const transaction = parsePlCSVRow(line);
 
-      const { error } = await supabase.from('pl').insert({
-        base_currency: transaction.base_currency,
-        quote_currency: transaction.quote_currency,
-        entered_at: transaction.entered_at,
-        exited_at: transaction.exited_at,
-        position: transaction.position,
-        entry: transaction.entry,
-        exit: transaction.exit,
-        profit_loss: transaction.profit_loss,
-        reason_detail: transaction.reason_detail,
-        result_detail: transaction.result_detail,
-        take_profit: transaction.take_profit,
-        loss_cut: transaction.loss_cut,
-        domain: transaction.domain,
-        method: transaction.method,
-        reason_image: transaction.reason_image,
-        result_image: transaction.result_image,
-      });
+        const { error } = await supabase.from('pl').insert({
+          base_currency: transaction.base_currency,
+          quote_currency: transaction.quote_currency,
+          entered_at: transaction.entered_at,
+          exited_at: transaction.exited_at,
+          position: transaction.position,
+          entry: transaction.entry,
+          exit: transaction.exit,
+          profit_loss: transaction.profit_loss,
+          reason_detail: transaction.reason_detail,
+          result_detail: transaction.result_detail,
+          take_profit: transaction.take_profit,
+          loss_cut: transaction.loss_cut,
+          domain: transaction.domain,
+          method: transaction.method,
+          reason_image: transaction.reason_image,
+          result_image: transaction.result_image,
+        });
 
-      if (error) {
-        console.error('データ挿入エラー:', error);
+        if (error) {
+          console.error('データ挿入エラー:', error);
+          continue;
+        }
+      } catch (parseError) {
+        console.error(
+          '行パースエラー:',
+          parseError instanceof Error ? parseError.message : String(parseError),
+          'Row:',
+          line
+        );
         continue;
       }
     }
