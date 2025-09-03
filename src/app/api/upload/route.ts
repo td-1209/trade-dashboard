@@ -53,9 +53,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Upload file
-    const fileName = `${Date.now()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage
+    // Upload file - sanitize filename for storage
+    const sanitizedName = file.name
+      .replace(/[^a-zA-Z0-9.\-_]/g, '_') // Replace non-ASCII characters with underscore
+      .replace(/_{2,}/g, '_'); // Replace multiple underscores with single one
+    const fileName = `${Date.now()}-${sanitizedName}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('images')
       .upload(fileName, file, {
         cacheControl: '3600',
@@ -64,8 +67,17 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: 'Upload failed',
+          details: uploadError.message,
+          code: uploadError.name,
+        },
+        { status: 500 }
+      );
     }
+
+    console.log('Upload successful:', uploadData);
 
     // Get public URL
     const {

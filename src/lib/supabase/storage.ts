@@ -45,7 +45,12 @@ export async function uploadImage(file: File): Promise<string> {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || 'Upload failed');
+    console.error('Upload API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: error
+    });
+    throw new Error(error.details ? `${error.error}: ${error.details}` : error.error || 'Upload failed');
   }
 
   const data = await response.json();
