@@ -82,5 +82,6 @@ export const methodOptions: {
 }[] = [
   { value: 'elliott', label: 'エリオット' },
   { value: 'range', label: 'レンジ' },
+  { value: 'spike', label: '急騰落' },
   { value: 'unknown', label: '手法が未指定' },
 ];

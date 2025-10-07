@@ -32,11 +32,10 @@ interface MethodAnalysis {
 
 // 日本語の手法名を英語の値にマッピング
 const getMethodValue = (methodName: string) => {
-  const methodMappings: { [key: string]: string } = {
-    エリオット: 'elliott',
-    レンジ: 'range',
-  };
-  return methodMappings[methodName];
+  const option = methodOptions.find(
+    (opt) => opt.label === methodName && opt.value !== 'unknown'
+  );
+  return option?.value;
 };
 
 export default function AnalysisPage() {
