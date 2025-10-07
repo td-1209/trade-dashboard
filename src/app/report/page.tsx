@@ -30,6 +30,15 @@ interface MethodAnalysis {
   failure_cases: PL[];
 }
 
+// 日本語の手法名を英語の値にマッピング
+const getMethodValue = (methodName: string) => {
+  const methodMappings: { [key: string]: string } = {
+    エリオット: 'elliott',
+    レンジ: 'range',
+  };
+  return methodMappings[methodName];
+};
+
 export default function AnalysisPage() {
   const [cumulativeProfit, setCumulativeProfit] = useState<number>(0);
   const [monthlyProfitData, setMonthlyProfitData] = useState<MonthlyData[]>([]);
@@ -53,7 +62,7 @@ export default function AnalysisPage() {
         .order('executed_at', { ascending: false });
 
       if (plData && cfData) {
-        // 累積損益額の計算
+        // 累積損益額の計算（累積損益 = 損益 - 元本）
         const totalProfit = plData.reduce(
           (sum, record) => sum + (record.profit_loss || 0),
           0
@@ -64,18 +73,29 @@ export default function AnalysisPage() {
         );
         setCumulativeProfit(totalProfit - totalInvestment);
 
-        // 月次データの計算（直近6ヶ月）
+        // 損益推移の計算（旧月次損益）
         const monthlyProfits = calculateMonthlyData(plData);
-        const monthlyPips = calculateMonthlyPipsData(plData); // FX取引のみ
         setMonthlyProfitData(monthlyProfits);
+
+        // pips推移の計算（旧月次pips）
+        const monthlyPips = calculateMonthlyPipsData(plData); // FX取引のみ
         setMonthlyPipsData(monthlyPips);
 
-        // 手法別勝率分析（直近3ヶ月）
+        // 手法別勝率分析
+        // 絞り込み条件：2025/9/16以降 かつ 直近3ヶ月
+        const targetDate = new Date('2025-09-16');
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const filterDate =
+          targetDate > threeMonthsAgo ? targetDate : threeMonthsAgo;
+        // 絞り込み条件：methodがunkownでない かつ profit_lossがnullでない
         const recentPL = plData.filter(
-          (record) => new Date(record.entered_at) >= threeMonthsAgo
+          (record) =>
+            new Date(record.entered_at) >= filterDate &&
+            record.method !== 'unknown' &&
+            record.profit_loss != null
         );
+        // 分析用データに整形
         const methodStats = calculateMethodAnalysis(recentPL);
         setMethodAnalysis(methodStats);
       }
@@ -86,28 +106,25 @@ export default function AnalysisPage() {
     fetchData();
   }, []);
 
+  // 月次損益を計算
   const calculateMonthlyData = (plData: PL[]): MonthlyData[] => {
     const recentData = plData;
     const monthlyMap = new Map<
       string,
       { profit_loss: number; count: number }
     >();
-
     recentData.forEach((record) => {
       const date = new Date(record.entered_at);
       const monthKey = `${date.getFullYear()}-${String(
         date.getMonth() + 1
       ).padStart(2, '0')}`;
-
       if (!monthlyMap.has(monthKey)) {
         monthlyMap.set(monthKey, { profit_loss: 0, count: 0 });
       }
-
       const monthData = monthlyMap.get(monthKey)!;
       monthData.profit_loss += record.profit_loss || 0;
       monthData.count++;
     });
-
     return Array.from(monthlyMap.entries())
       .map(([month, data]) => ({
         month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
@@ -121,23 +138,20 @@ export default function AnalysisPage() {
       });
   };
 
-  // FX取引のみを対象としたpips計算（domain=fx）
+  // 月次pipsを計算
   const calculateMonthlyPipsData = (plData: PL[]): MonthlyData[] => {
     const fxData = plData.filter(
-      (record) => record.domain === 'fx' // FX取引のみ
+      (record) => record.domain === 'fx' // スケール調整のため外貨のみ対象
     );
     const monthlyMap = new Map<string, { pips: number; count: number }>();
-
     fxData.forEach((record) => {
       const date = new Date(record.entered_at);
       const monthKey = `${date.getFullYear()}-${String(
         date.getMonth() + 1
       ).padStart(2, '0')}`;
-
       if (!monthlyMap.has(monthKey)) {
         monthlyMap.set(monthKey, { pips: 0, count: 0 });
       }
-
       const monthData = monthlyMap.get(monthKey)!;
       if (record.exit && record.entry) {
         const pips = calculatePips({
@@ -150,7 +164,6 @@ export default function AnalysisPage() {
       }
       monthData.count++;
     });
-
     return Array.from(monthlyMap.entries())
       .map(([month, data]) => ({
         month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
@@ -164,26 +177,23 @@ export default function AnalysisPage() {
       });
   };
 
+  // 分析データ用に整形
   const calculateMethodAnalysis = (plData: PL[]): MethodAnalysis[] => {
     const methodMap = new Map<
       string,
       { wins: number; total: number; records: PL[] }
     >();
-
     plData.forEach((record) => {
       if (!methodMap.has(record.method)) {
         methodMap.set(record.method, { wins: 0, total: 0, records: [] });
       }
-
       const methodData = methodMap.get(record.method)!;
       methodData.total++;
       methodData.records.push(record);
-
       if ((record.profit_loss || 0) >= 0) {
         methodData.wins++;
       }
     });
-
     return Array.from(methodMap.entries())
       .map(([method, data]) => ({
         method:
@@ -207,38 +217,17 @@ export default function AnalysisPage() {
           .slice(0, 3),
       }))
       .sort((a, b) => {
-        // 日本語の手法名を英語の値にマッピング
-        const getMethodValue = (methodName: string) => {
-          const mapping: { [key: string]: string } = {
-            エリオット: 'elliott',
-            レンジ: 'range',
-            手法が未指定: 'unknown',
-          };
-          return mapping[methodName] || methodName;
-        };
-
         const aMethodValue = getMethodValue(a.method);
         const bMethodValue = getMethodValue(b.method);
-
         const aIndex = methodOptions.findIndex(
           (option) => option.value === aMethodValue
         );
         const bIndex = methodOptions.findIndex(
           (option) => option.value === bMethodValue
         );
-
-        // methodOptionsにない場合は最後に
-        if (aIndex === -1) return 1;
-        if (bIndex === -1) return -1;
-
         return aIndex - bIndex;
       });
   };
-
-  // const formatDate = (dateString: string) => {
-  //   const date = new Date(dateString);
-  //   return `${date.getMonth() + 1}/${date.getDate()}`;
-  // };
 
   if (isLoading) {
     return (
@@ -250,24 +239,23 @@ export default function AnalysisPage() {
 
   return (
     <div className='space-y-6'>
-      {/* 累積損益額 */}
+      <h2 className='text-xl font-bold text-white my-2'>成果の部</h2>
+
+      {/* 累積損益 */}
       <Card padding='large'>
-        <h2 className='text-xl font-bold text-white mb-2'>累積損益額</h2>
+        <h3 className='text-lg font-bold text-white my-2'>累積損益（円）</h3>
         <p
           className={`text-3xl font-bold ${
             cumulativeProfit >= 0 ? 'text-positive' : 'text-negative'
           }`}
         >
-          ¥{cumulativeProfit.toLocaleString()}
+          {cumulativeProfit.toLocaleString()}
         </p>
-        <p className='text-lightGray text-sm mt-1'>2025年8月以降</p>
       </Card>
 
-      {/* 月別損益グラフ */}
+      {/* 損益推移 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white mb-4'>
-          月別損益額（全期間）（万円）
-        </h3>
+        <h3 className='text-lg font-bold text-white my-2'>損益推移（万円）</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyProfitData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
@@ -289,16 +277,16 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Bar dataKey='profit_loss' fill='#448AFF' name='損益額（¥）' />
+            <Bar dataKey='profit_loss' fill='#448AFF' name='損益(¥)' />
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
-      {/* 月別pipsグラフ */}
+      <h2 className='text-xl font-bold text-white my-2'>分析の部</h2>
+
+      {/* pips推移 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white mb-4'>
-          月別pips（全期間・FX取引のみ）
-        </h3>
+        <h3 className='text-lg font-bold text-white my-2'>pips推移（FX）</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyPipsData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
@@ -327,13 +315,12 @@ export default function AnalysisPage() {
 
       {/* 手法別勝率分析 */}
       <div className='space-y-4'>
-        <h3 className='text-lg font-bold text-white'>
-          手法別勝率（直近3ヶ月）
-        </h3>
         {methodAnalysis.map((method, index) => (
           <Card key={index} padding='large'>
             <div className='flex justify-between items-center mb-4'>
-              <h4 className='text-white font-bold'>{method.method}</h4>
+              <h4 className='text-lg font-bold text-white my-2'>
+                {method.method}
+              </h4>
               <span
                 className={`text-xl font-bold ${
                   method.win_rate > 0 ? 'text-positive' : 'text-negative'
@@ -342,13 +329,19 @@ export default function AnalysisPage() {
                 {method.win_rate}%
               </span>
             </div>
-
             <div className='space-y-6'>
               {/* 成功例 */}
               <div>
                 <h5 className='text-positive font-semibold mb-3'>成功例</h5>
                 {method.success_cases.map((record, idx) => (
                   <div key={idx} className='bg-black rounded p-4 mb-3'>
+                    <h6 className='text-white font-medium mb-2'>
+                      {new Date(record.entered_at).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      })}
+                    </h6>
                     <div className='grid grid-cols-2 gap-4'>
                       {/* Reason */}
                       <div className='flex flex-col justify-between'>
@@ -370,7 +363,6 @@ export default function AnalysisPage() {
                             />
                           )}
                       </div>
-
                       {/* Result */}
                       <div className='flex flex-col justify-between'>
                         <div>
@@ -395,12 +387,18 @@ export default function AnalysisPage() {
                   </div>
                 ))}
               </div>
-
               {/* 失敗例 */}
               <div>
                 <h5 className='text-negative font-semibold mb-3'>失敗例</h5>
                 {method.failure_cases.map((record, idx) => (
                   <div key={idx} className='bg-black rounded p-4 mb-3'>
+                    <h6 className='text-white font-medium mb-2'>
+                      {new Date(record.entered_at).toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      })}
+                    </h6>
                     <div className='grid grid-cols-2 gap-4'>
                       {/* Reason */}
                       <div className='flex flex-col justify-between'>
@@ -422,7 +420,6 @@ export default function AnalysisPage() {
                             />
                           )}
                       </div>
-
                       {/* Result */}
                       <div className='flex flex-col justify-between'>
                         <div>
