@@ -1,6 +1,6 @@
 'use client';
 
-import { uploadImage, deleteImage } from '@/lib/supabase/storage';
+import { deleteImage, uploadImage } from '@/lib/supabase/storage';
 import Image from 'next/image';
 import { useState } from 'react';
 
@@ -11,7 +11,11 @@ interface UploaderProps {
   label?: string;
 }
 
-export default function Uploader({ onUpload, onDelete, currentImage }: UploaderProps) {
+export default function Uploader({
+  onUpload,
+  onDelete,
+  currentImage,
+}: UploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -62,7 +66,7 @@ export default function Uploader({ onUpload, onDelete, currentImage }: UploaderP
 
   return (
     <div className='space-y-2'>
-      <div className='flex items-center space-x-2'>
+      <div className='flex flex-col space-y-2'>
         <input
           type='file'
           accept='image/*'
@@ -75,7 +79,7 @@ export default function Uploader({ onUpload, onDelete, currentImage }: UploaderP
             type='button'
             onClick={handleDelete}
             disabled={uploading || deleting}
-            className='px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='px-3 py-2 bg-attentionButtonBG text-white text-sm rounded-md hover:bg-attentionButtonBG disabled:opacity-50 disabled:cursor-not-allowed self-start'
           >
             {deleting ? '削除中...' : '削除'}
           </button>
