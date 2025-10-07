@@ -77,7 +77,10 @@ export default function AnalysisPage() {
         setMonthlyProfitData(monthlyProfits);
 
         // pips推移の計算（旧月次pips）
-        const monthlyPips = calculateMonthlyPipsData(plData); // FX取引のみ
+        const completedPlData = plData.filter(
+          (record) => record.profit_loss !== null
+        );
+        const monthlyPips = calculateMonthlyPipsData(completedPlData); // FX取引のみ
         setMonthlyPipsData(monthlyPips);
 
         // 手法別勝率分析
