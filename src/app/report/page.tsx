@@ -7,6 +7,8 @@ import { CF, methodOptions, PL } from '@/types/type';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -189,7 +191,7 @@ export default function AnalysisPage() {
       });
   };
 
-  // 月次元本を計算
+  // 月次元本を計算（累積値）
   const calculateMonthlyInvestmentData = (cfData: CF[]): MonthlyData[] => {
     if (cfData.length === 0) return [];
     const monthlyMap = new Map<string, { investment: number; count: number }>();
@@ -234,7 +236,15 @@ export default function AnalysisPage() {
         currentYear++;
       }
     }
-    return result;
+    // 累積値に変換（投資額は費用扱いでマイナス表示）
+    let cumulativeInvestment = 0;
+    return result.map((monthData) => {
+      cumulativeInvestment += monthData.profit_loss * -1;
+      return {
+        ...monthData,
+        profit_loss: cumulativeInvestment,
+      };
+    });
   };
 
   // 月次pipsを計算
@@ -427,9 +437,23 @@ export default function AnalysisPage() {
 
       {/* 元本推移 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>元本推移（万円）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>
+          資本の回収状況（万円）
+        </h3>
         <ResponsiveContainer width='100%' height={300}>
-          <BarChart data={monthlyInvestmentData}>
+          <AreaChart data={monthlyInvestmentData}>
+            <defs>
+              <linearGradient
+                id='investmentGradient'
+                x1='0'
+                y1='0'
+                x2='0'
+                y2='1'
+              >
+                <stop offset='5%' stopColor='#FF5252' stopOpacity={0.3} />
+                <stop offset='95%' stopColor='#FF5252' stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
             <XAxis dataKey='month' stroke='#757575' />
             <YAxis
@@ -449,8 +473,14 @@ export default function AnalysisPage() {
               }}
               labelStyle={{ color: '#ECEFF1' }}
             />
-            <Bar dataKey='profit_loss' fill='#66BB6A' name='元本(¥)' />
-          </BarChart>
+            <Area
+              type='monotone'
+              dataKey='profit_loss'
+              stroke='#FF5252'
+              fill='url(#investmentGradient)'
+              name='元本(¥)'
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </Card>
 
