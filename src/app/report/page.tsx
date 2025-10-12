@@ -3,7 +3,7 @@
 import { Card } from '@/components/Card';
 import { calculatePips } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
-import { methodOptions, PL } from '@/types/type';
+import { CF, methodOptions, PL } from '@/types/type';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
@@ -39,9 +39,15 @@ const getMethodValue = (methodName: string) => {
 };
 
 export default function AnalysisPage() {
-  const [cumulativeProfit, setCumulativeProfit] = useState<number>(0);
-  const [monthlyProfitData, setMonthlyProfitData] = useState<MonthlyData[]>([]);
+  // const [cumulativeProfit, setCumulativeProfit] = useState<number>(0);
+  // const [monthlyProfitData, setMonthlyProfitData] = useState<MonthlyData[]>([]);
   const [monthlyPipsData, setMonthlyPipsData] = useState<MonthlyData[]>([]);
+  const [monthlyInvestmentData, setMonthlyInvestmentData] = useState<
+    MonthlyData[]
+  >([]);
+  const [monthlyTradeCountData, setMonthlyTradeCountData] = useState<
+    MonthlyData[]
+  >([]);
   const [methodAnalysis, setMethodAnalysis] = useState<MethodAnalysis[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -62,19 +68,19 @@ export default function AnalysisPage() {
 
       if (plData && cfData) {
         // 累積損益額の計算（累積損益 = 損益 - 元本）
-        const totalProfit = plData.reduce(
-          (sum, record) => sum + (record.profit_loss || 0),
-          0
-        );
-        const totalInvestment = cfData.reduce(
-          (sum, record) => sum + (record.price || 0),
-          0
-        );
-        setCumulativeProfit(totalProfit - totalInvestment);
+        // const totalProfit = Math.max(
+        //   0,
+        //   plData.reduce((sum, record) => sum + (record.profit_loss || 0), 0)
+        // );
+        // const totalInvestment = cfData.reduce(
+        //   (sum, record) => sum + (record.price || 0),
+        //   0
+        // );
+        // setCumulativeProfit(totalProfit - totalInvestment);
 
         // 損益推移の計算（旧月次損益）
-        const monthlyProfits = calculateMonthlyData(plData);
-        setMonthlyProfitData(monthlyProfits);
+        // const monthlyProfits = calculateMonthlyData(plData);
+        // setMonthlyProfitData(monthlyProfits);
 
         // pips推移の計算（旧月次pips）
         const completedPlData = plData.filter(
@@ -82,6 +88,14 @@ export default function AnalysisPage() {
         );
         const monthlyPips = calculateMonthlyPipsData(completedPlData); // FX取引のみ
         setMonthlyPipsData(monthlyPips);
+
+        // 元本推移の計算
+        const monthlyInvestment = calculateMonthlyInvestmentData(cfData);
+        setMonthlyInvestmentData(monthlyInvestment);
+
+        // 取引数推移の計算
+        const monthlyTradeCount = calculateMonthlyTradeCountData(plData);
+        setMonthlyTradeCountData(monthlyTradeCount);
 
         // 手法別勝率分析
         // 絞り込み条件：2025/9/16以降 かつ 直近3ヶ月
@@ -108,36 +122,111 @@ export default function AnalysisPage() {
     fetchData();
   }, []);
 
-  // 月次損益を計算
-  const calculateMonthlyData = (plData: PL[]): MonthlyData[] => {
-    const recentData = plData;
-    const monthlyMap = new Map<
-      string,
-      { profit_loss: number; count: number }
-    >();
-    recentData.forEach((record) => {
+  // // 月次損益を計算
+  // const calculateMonthlyData = (plData: PL[]): MonthlyData[] => {
+  //   const recentData = plData;
+  //   const monthlyMap = new Map<
+  //     string,
+  //     { profit_loss: number; count: number }
+  //   >();
+  //   recentData.forEach((record) => {
+  //     const date = new Date(record.entered_at);
+  //     const monthKey = `${date.getFullYear()}-${String(
+  //       date.getMonth() + 1
+  //     ).padStart(2, '0')}`;
+  //     if (!monthlyMap.has(monthKey)) {
+  //       monthlyMap.set(monthKey, { profit_loss: 0, count: 0 });
+  //     }
+  //     const monthData = monthlyMap.get(monthKey)!;
+  //     monthData.profit_loss += record.profit_loss || 0;
+  //     monthData.count++;
+  //   });
+  //   return Array.from(monthlyMap.entries())
+  //     .map(([month, data]) => ({
+  //       month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
+  //       profit_loss: data.profit_loss,
+  //       pips: 0, // pipsは別関数で計算
+  //     }))
+  //     .sort((a, b) => {
+  //       const [yearA, monthA] = a.month.split('/').map(Number);
+  //       const [yearB, monthB] = b.month.split('/').map(Number);
+  //       return yearA !== yearB ? yearA - yearB : monthA - monthB;
+  //     });
+  // };
+
+  // 月次取引数を計算
+  const calculateMonthlyTradeCountData = (plData: PL[]): MonthlyData[] => {
+    const monthlyMap = new Map<string, { count: number }>();
+    plData.forEach((record) => {
       const date = new Date(record.entered_at);
       const monthKey = `${date.getFullYear()}-${String(
         date.getMonth() + 1
       ).padStart(2, '0')}`;
       if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { profit_loss: 0, count: 0 });
+        monthlyMap.set(monthKey, { count: 0 });
       }
       const monthData = monthlyMap.get(monthKey)!;
-      monthData.profit_loss += record.profit_loss || 0;
       monthData.count++;
     });
     return Array.from(monthlyMap.entries())
       .map(([month, data]) => ({
         month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
-        profit_loss: data.profit_loss,
-        pips: 0, // pipsは別関数で計算
+        profit_loss: data.count, // profit_lossフィールドに取引数を格納
+        pips: 0,
       }))
       .sort((a, b) => {
         const [yearA, monthA] = a.month.split('/').map(Number);
         const [yearB, monthB] = b.month.split('/').map(Number);
         return yearA !== yearB ? yearA - yearB : monthA - monthB;
       });
+  };
+
+  // 月次元本を計算
+  const calculateMonthlyInvestmentData = (cfData: CF[]): MonthlyData[] => {
+    if (cfData.length === 0) return [];
+    const monthlyMap = new Map<string, { investment: number; count: number }>();
+    cfData.forEach((record) => {
+      const date = new Date(record.executed_at);
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, '0')}`;
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, { investment: 0, count: 0 });
+      }
+      const monthData = monthlyMap.get(monthKey)!;
+      monthData.investment += record.price || 0;
+      monthData.count++;
+    });
+    // データのない月は0で補完
+    const sortedKeys = Array.from(monthlyMap.keys()).sort();
+    const [startYear, startMonth] = sortedKeys[0].split('-').map(Number);
+    const now = new Date();
+    const endYear = now.getFullYear();
+    const endMonth = now.getMonth() + 1;
+    const result: MonthlyData[] = [];
+    let currentYear = startYear;
+    let currentMonth = startMonth;
+    while (
+      currentYear < endYear ||
+      (currentYear === endYear && currentMonth <= endMonth)
+    ) {
+      const monthKey = `${currentYear}-${String(currentMonth).padStart(
+        2,
+        '0'
+      )}`;
+      const data = monthlyMap.get(monthKey);
+      result.push({
+        month: `${currentYear}/${String(currentMonth).padStart(2, '0')}`,
+        profit_loss: data ? data.investment : 0,
+        pips: 0,
+      });
+      currentMonth++;
+      if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+      }
+    }
+    return result;
   };
 
   // 月次pipsを計算
@@ -241,10 +330,10 @@ export default function AnalysisPage() {
 
   return (
     <div className='space-y-6'>
-      <h2 className='text-xl font-bold text-white my-2'>成果の部</h2>
+      {/* <h2 className='text-xl font-bold text-white my-2'>成果の部</h2> */}
 
       {/* 累積損益 */}
-      <Card padding='large'>
+      {/* <Card padding='large'>
         <h3 className='text-lg font-bold text-white my-2'>累積損益（円）</h3>
         <p
           className={`text-3xl font-bold ${
@@ -253,10 +342,10 @@ export default function AnalysisPage() {
         >
           {cumulativeProfit.toLocaleString()}
         </p>
-      </Card>
+      </Card> */}
 
       {/* 損益推移 */}
-      <Card padding='large'>
+      {/* <Card padding='large'>
         <h3 className='text-lg font-bold text-white my-2'>損益推移（万円）</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyProfitData}>
@@ -282,9 +371,66 @@ export default function AnalysisPage() {
             <Bar dataKey='profit_loss' fill='#448AFF' name='損益(¥)' />
           </BarChart>
         </ResponsiveContainer>
+      </Card> */}
+
+      {/* 取引数推移 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>取引数推移（件）</h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <BarChart data={monthlyTradeCountData}>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis dataKey='month' stroke='#757575' />
+            <YAxis
+              stroke='#757575'
+              orientation='left'
+              tickFormatter={(value) => `${Math.round(value)}`}
+              axisLine={false}
+              tickLine={false}
+              tick={{ dx: -15 }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#333333',
+                border: 'none',
+                borderRadius: '8px',
+              }}
+              labelStyle={{ color: '#ECEFF1' }}
+            />
+            <Bar dataKey='profit_loss' fill='#FFA726' name='取引数' />
+          </BarChart>
+        </ResponsiveContainer>
       </Card>
 
-      <h2 className='text-xl font-bold text-white my-2'>分析の部</h2>
+      {/* 元本推移 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>元本推移（万円）</h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <BarChart data={monthlyInvestmentData}>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis dataKey='month' stroke='#757575' />
+            <YAxis
+              stroke='#757575'
+              orientation='left'
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+              axisLine={false}
+              tickLine={false}
+              tick={{ dx: -15 }}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#333333',
+                border: 'none',
+                borderRadius: '8px',
+              }}
+              labelStyle={{ color: '#ECEFF1' }}
+            />
+            <Bar dataKey='profit_loss' fill='#66BB6A' name='元本(¥)' />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* <h2 className='text-xl font-bold text-white my-2'>分析の部</h2> */}
 
       {/* pips推移 */}
       <Card padding='large'>
