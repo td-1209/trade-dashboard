@@ -26,6 +26,7 @@ interface MonthlyData {
 interface MethodAnalysis {
   method: string;
   win_rate: number;
+  total_pips: number;
   success_cases: PL[];
   failure_cases: PL[];
 }
@@ -37,6 +38,12 @@ const getMethodValue = (methodName: string) => {
   );
   return option?.value;
 };
+
+// 手法分析の対象期間（ヶ月）
+const METHOD_ANALYSIS_TARGET_MONTHS = 1;
+
+// 手法分析の表示サンプル数（成功例・失敗例それぞれ）
+const METHOD_ANALYSIS_SAMPLE_COUNT = 3;
 
 export default function AnalysisPage() {
   // const [cumulativeProfit, setCumulativeProfit] = useState<number>(0);
@@ -98,12 +105,13 @@ export default function AnalysisPage() {
         setMonthlyTradeCountData(monthlyTradeCount);
 
         // 手法別勝率分析
-        // 絞り込み条件：2025/9/16以降 かつ 直近3ヶ月
+        // 絞り込み条件：2025/9/16以降 かつ 直近N ヶ月
         const targetDate = new Date('2025-09-16');
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        const filterDate =
-          targetDate > threeMonthsAgo ? targetDate : threeMonthsAgo;
+        const nMonthsAgo = new Date();
+        nMonthsAgo.setMonth(
+          nMonthsAgo.getMonth() - METHOD_ANALYSIS_TARGET_MONTHS
+        );
+        const filterDate = targetDate > nMonthsAgo ? targetDate : nMonthsAgo;
         // 絞り込み条件：methodがunkownでない かつ profit_lossがnullでない
         const recentPL = plData.filter(
           (record) =>
@@ -272,11 +280,16 @@ export default function AnalysisPage() {
   const calculateMethodAnalysis = (plData: PL[]): MethodAnalysis[] => {
     const methodMap = new Map<
       string,
-      { wins: number; total: number; records: PL[] }
+      { wins: number; total: number; totalPips: number; records: PL[] }
     >();
     plData.forEach((record) => {
       if (!methodMap.has(record.method)) {
-        methodMap.set(record.method, { wins: 0, total: 0, records: [] });
+        methodMap.set(record.method, {
+          wins: 0,
+          total: 0,
+          totalPips: 0,
+          records: [],
+        });
       }
       const methodData = methodMap.get(record.method)!;
       methodData.total++;
@@ -284,12 +297,23 @@ export default function AnalysisPage() {
       if ((record.profit_loss || 0) >= 0) {
         methodData.wins++;
       }
+      // FXのみpipsを計算
+      if (record.domain === 'fx' && record.entry && record.exit) {
+        const pips = calculatePips({
+          quoteCurrency: record.quote_currency || 'USD',
+          entryPrice: record.entry,
+          exitPrice: record.exit,
+          position: record.position,
+        });
+        methodData.totalPips += pips;
+      }
     });
     return Array.from(methodMap.entries())
       .map(([method, data]) => ({
         method:
           methodOptions.find((opt) => opt.value === method)?.label || method,
         win_rate: Math.round((data.wins / data.total) * 100),
+        total_pips: Math.round(data.totalPips * 10) / 10,
         success_cases: data.records
           .filter((r) => (r.profit_loss || 0) >= 0)
           .sort(
@@ -297,7 +321,7 @@ export default function AnalysisPage() {
               new Date(b.entered_at).getTime() -
               new Date(a.entered_at).getTime()
           )
-          .slice(0, 3),
+          .slice(0, METHOD_ANALYSIS_SAMPLE_COUNT),
         failure_cases: data.records
           .filter((r) => (r.profit_loss || 0) < 0)
           .sort(
@@ -305,7 +329,7 @@ export default function AnalysisPage() {
               new Date(b.entered_at).getTime() -
               new Date(a.entered_at).getTime()
           )
-          .slice(0, 3),
+          .slice(0, METHOD_ANALYSIS_SAMPLE_COUNT),
       }))
       .sort((a, b) => {
         const aMethodValue = getMethodValue(a.method);
@@ -470,13 +494,14 @@ export default function AnalysisPage() {
                 {method.method}
               </h4>
               <span
-                className={`text-xl font-bold ${
-                  method.win_rate > 0 ? 'text-positive' : 'text-negative'
+                className={`font-semibold ${
+                  method.total_pips >= 0 ? 'text-positive' : 'text-negative'
                 }`}
               >
-                {method.win_rate}%
+                {method.total_pips.toFixed(1)} pips ({method.win_rate}%)
               </span>
             </div>
+
             <div className='space-y-6'>
               {/* 成功例 */}
               <div>
