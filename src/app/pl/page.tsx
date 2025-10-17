@@ -3,6 +3,7 @@
 import { SingleButton } from '@/components/Button';
 import { Card } from '@/components/Card';
 import {
+  calculatePips,
   convertJSTInputFormatToDisplayFormat,
   convertUTCISOStringToJSTInputFormat,
 } from '@/lib/calc';
@@ -17,6 +18,7 @@ interface DisplayRecord {
   base_currency: string;
   quote_currency: string;
   profit_loss: number;
+  pips?: number;
   reason_detail: string;
   result_detail: string;
 }
@@ -36,26 +38,45 @@ export default function Home() {
         .select('*')
         .order('entered_at', { ascending: false });
       if (plData) {
-        const records: DisplayRecord[] = plData.map((record) => ({
-          id: record.id,
-          entered_at: convertJSTInputFormatToDisplayFormat({
-            dateTime: convertUTCISOStringToJSTInputFormat({
-              isoString: record.entered_at,
+        const records: DisplayRecord[] = plData.map((record) => {
+          // pipsの計算（FX取引かつentry/exitが存在する場合のみ）
+          let pips: number | undefined;
+          if (
+            record.domain === 'fx' &&
+            record.entry &&
+            record.exit &&
+            record.quote_currency
+          ) {
+            pips = calculatePips({
+              quoteCurrency: record.quote_currency,
+              entryPrice: record.entry,
+              exitPrice: record.exit,
+              position: record.position,
+            });
+          }
+
+          return {
+            id: record.id,
+            entered_at: convertJSTInputFormatToDisplayFormat({
+              dateTime: convertUTCISOStringToJSTInputFormat({
+                isoString: record.entered_at,
+              }),
             }),
-          }),
-          exited_at: record.exited_at
-            ? convertJSTInputFormatToDisplayFormat({
-                dateTime: convertUTCISOStringToJSTInputFormat({
-                  isoString: record.exited_at,
-                }),
-              })
-            : '',
-          base_currency: record.base_currency,
-          quote_currency: record.quote_currency,
-          profit_loss: record.profit_loss || 0,
-          reason_detail: record.reason_detail,
-          result_detail: record.result_detail,
-        }));
+            exited_at: record.exited_at
+              ? convertJSTInputFormatToDisplayFormat({
+                  dateTime: convertUTCISOStringToJSTInputFormat({
+                    isoString: record.exited_at,
+                  }),
+                })
+              : '',
+            base_currency: record.base_currency,
+            quote_currency: record.quote_currency,
+            profit_loss: record.profit_loss || 0,
+            pips,
+            reason_detail: record.reason_detail,
+            result_detail: record.result_detail,
+          };
+        });
         setDisplayRecords(records);
       }
       setIsLoading(false);
@@ -85,6 +106,9 @@ export default function Home() {
                   >
                     {item.base_currency}/{item.quote_currency}　 ¥
                     {item.profit_loss.toLocaleString()}
+                    {item.pips !== undefined && (
+                      <span className='ml-2'>({item.pips.toFixed(1)} pips)</span>
+                    )}
                   </p>
                 </>
               ) : (
