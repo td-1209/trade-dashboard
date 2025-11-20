@@ -80,9 +80,12 @@ export const methodOptions: {
   value: string;
   label: string;
 }[] = [
-  { value: 'elliott', label: 'エリオット' },
-  { value: 'range', label: 'レンジ' },
-  { value: 'spike', label: '急騰落' },
-  { value: 'pivot', label: 'ピボット' },
+  { value: 'elliott', label: '日足エリオット' },
+  { value: 'range', label: '日足レンジ' },
+  { value: 'spike', label: '日足急騰落' },
+  { value: 'pivot', label: '日足ピボット更新' },
+  { value: 'pivot_inv', label: '日足ピボット反発' },
+  { value: 'min_pivot', label: '分足ピボット更新' },
+  { value: 'min_pivot_inv', label: '分足ピボット反発' },
   { value: 'unknown', label: '手法が未指定' },
 ];
