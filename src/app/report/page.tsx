@@ -7,13 +7,16 @@ import { CF, methodOptions, PL } from '@/types/type';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
+  Line,
+  LineChart,
   ReferenceLine,
   ResponsiveContainer,
+  Cell,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -21,8 +24,24 @@ import {
 
 interface MonthlyData {
   month: string;
+  value: number;
+}
+
+interface DefeatBarData {
+  days: number;
   profit_loss: number;
+}
+
+interface DefeatWinLossData {
+  days: number;
+  wins: number;
+  losses: number;
+}
+
+interface DefeatScatterData {
   pips: number;
+  profit_loss: number;
+  isLoss: boolean;
 }
 
 interface MethodAnalysis {
@@ -41,21 +60,104 @@ const getMethodValue = (methodName: string) => {
   return option?.value;
 };
 
-// 手法分析の対象期間（ヶ月）
-const METHOD_ANALYSIS_TARGET_MONTHS = 1;
-
 // 手法分析の表示サンプル数（成功例・失敗例それぞれ）
 const METHOD_ANALYSIS_SAMPLE_COUNT = 3;
 
+// 共通Tooltipスタイル
+const tooltipStyle = {
+  contentStyle: {
+    backgroundColor: '#333333',
+    border: 'none',
+    borderRadius: '8px',
+  },
+  labelStyle: { color: '#ECEFF1' },
+};
+
+// 共通Y軸スタイル
+const yAxisProps = {
+  stroke: '#757575',
+  orientation: 'left' as const,
+  axisLine: false,
+  tickLine: false,
+  tick: { dx: -15 },
+};
+
+// Date → "YYYY/MM"
+const toMonthKey = (date: Date): string => {
+  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+};
+
+// 全月の範囲を生成（最小月〜現在月）
+const generateMonthRange = (months: string[]): string[] => {
+  if (months.length === 0) return [];
+  const sorted = [...months].sort();
+  const [startYear, startMonth] = sorted[0].split('/').map(Number);
+  const now = new Date();
+  const endYear = now.getFullYear();
+  const endMonth = now.getMonth() + 1;
+  const result: string[] = [];
+  let y = startYear,
+    m = startMonth;
+  while (y < endYear || (y === endYear && m <= endMonth)) {
+    result.push(`${y}/${String(m).padStart(2, '0')}`);
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+  return result;
+};
+
+// Y軸を0中心で対称にするためのdomain計算
+const symmetricDomain = (values: number[]): [number, number] => {
+  const maxAbs = Math.max(...values.map(Math.abs), 0);
+  return [-maxAbs, maxAbs];
+};
+
+// 折れ線グラデーションの0地点オフセットを計算（パスのbounding box基準）
+const gradientOffset = (data: { value: number }[]): number => {
+  const values = data.map((d) => d.value);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  if (max <= 0) return 0;
+  if (min >= 0) return 1;
+  return max / (max - min);
+};
+
+// Map → MonthlyData[] に変換（欠損月は0埋め）
+const fillMonths = (
+  monthlyMap: Map<string, number>,
+  allMonths: string[]
+): MonthlyData[] => {
+  return allMonths.map((month) => ({
+    month,
+    value: monthlyMap.get(month) || 0,
+  }));
+};
+
+// 累積値に変換
+const toCumulative = (data: MonthlyData[]): MonthlyData[] => {
+  let cumulative = 0;
+  return data.map((d) => {
+    cumulative += d.value;
+    return { month: d.month, value: cumulative };
+  });
+};
+
 export default function AnalysisPage() {
-  // const [cumulativeProfit, setCumulativeProfit] = useState<number>(0);
-  // const [monthlyProfitData, setMonthlyProfitData] = useState<MonthlyData[]>([]);
+  const [cumulativePLData, setCumulativePLData] = useState<MonthlyData[]>([]);
+  const [monthlyPLData, setMonthlyPLData] = useState<MonthlyData[]>([]);
   const [monthlyPipsData, setMonthlyPipsData] = useState<MonthlyData[]>([]);
-  const [monthlyInvestmentData, setMonthlyInvestmentData] = useState<
+  const [cumulativeCapitalData, setCumulativeCapitalData] = useState<
     MonthlyData[]
   >([]);
-  const [monthlyTradeCountData, setMonthlyTradeCountData] = useState<
-    MonthlyData[]
+  const [defeatBarData, setDefeatBarData] = useState<DefeatBarData[]>([]);
+  const [defeatWinLossData, setDefeatWinLossData] = useState<
+    DefeatWinLossData[]
+  >([]);
+  const [defeatScatterData, setDefeatScatterData] = useState<
+    DefeatScatterData[]
   >([]);
   const [methodAnalysis, setMethodAnalysis] = useState<MethodAnalysis[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +166,6 @@ export default function AnalysisPage() {
     const fetchData = async () => {
       const supabase = createClient();
 
-      // PLデータとCFデータを取得
       const { data: plData } = await supabase
         .from('pl')
         .select('*')
@@ -76,54 +177,143 @@ export default function AnalysisPage() {
         .order('executed_at', { ascending: false });
 
       if (plData && cfData) {
-        // 累積損益額の計算（累積損益 = 損益 - 元本）
-        // const totalProfit = Math.max(
-        //   0,
-        //   plData.reduce((sum, record) => sum + (record.profit_loss || 0), 0)
-        // );
-        // const totalInvestment = cfData.reduce(
-        //   (sum, record) => sum + (record.price || 0),
-        //   0
-        // );
-        // setCumulativeProfit(totalProfit - totalInvestment);
+        const completedPL = plData.filter((r) => r.profit_loss !== null);
 
-        // 損益推移の計算（旧月次損益）
-        // const monthlyProfits = calculateMonthlyData(plData);
-        // setMonthlyProfitData(monthlyProfits);
-
-        // pips推移の計算（旧月次pips）
-        const completedPlData = plData.filter(
-          (record) => record.profit_loss !== null
+        // 全データソースから月を収集し、統一X軸を生成
+        const allMonthsSet = new Set<string>();
+        plData.forEach((r) =>
+          allMonthsSet.add(toMonthKey(new Date(r.entered_at)))
         );
-        const monthlyPips = calculateMonthlyPipsData(completedPlData); // FX取引のみ
-        setMonthlyPipsData(monthlyPips);
+        cfData.forEach((r) =>
+          allMonthsSet.add(toMonthKey(new Date(r.executed_at)))
+        );
+        const allMonths = generateMonthRange(Array.from(allMonthsSet));
 
-        // 元本推移の計算
-        const monthlyInvestment = calculateMonthlyInvestmentData(cfData);
-        setMonthlyInvestmentData(monthlyInvestment);
+        // --- 最終結果 ---
 
-        // 取引数推移の計算
-        const monthlyTradeCount = calculateMonthlyTradeCountData(plData);
-        setMonthlyTradeCountData(monthlyTradeCount);
+        // 月毎損益
+        const plMap = new Map<string, number>();
+        completedPL.forEach((r) => {
+          const key = toMonthKey(new Date(r.entered_at));
+          plMap.set(key, (plMap.get(key) || 0) + (r.profit_loss || 0));
+        });
+        const monthlyPL = fillMonths(plMap, allMonths);
+        setMonthlyPLData(monthlyPL);
 
-        // 手法別勝率分析
-        // 絞り込み条件：2025/9/16以降 かつ 直近N ヶ月
+        // 累積損益
+        setCumulativePLData(toCumulative(monthlyPL));
+
+        // 月毎pips（FXのみ）
+        const pipsMap = new Map<string, number>();
+        completedPL
+          .filter((r) => r.domain === 'fx' && r.entry && r.exit)
+          .forEach((r) => {
+            const key = toMonthKey(new Date(r.entered_at));
+            const pips = calculatePips({
+              quoteCurrency: r.quote_currency || 'USD',
+              entryPrice: r.entry,
+              exitPrice: r.exit!,
+              position: r.position,
+            });
+            pipsMap.set(key, (pipsMap.get(key) || 0) + pips);
+          });
+        setMonthlyPipsData(fillMonths(pipsMap, allMonths));
+
+        // 累積資本状況（投資額はマイナス表示）
+        const investMap = new Map<string, number>();
+        cfData.forEach((r) => {
+          const key = toMonthKey(new Date(r.executed_at));
+          investMap.set(
+            key,
+            (investMap.get(key) || 0) + (r.price || 0) * -1
+          );
+        });
+        setCumulativeCapitalData(
+          toCumulative(fillMonths(investMap, allMonths))
+        );
+
+        // --- 敗北分析 ---
+        const closedTrades = completedPL.filter((r) => r.exited_at);
+
+        // 棒グラフ: 取引日数 vs 損益（日数ごとに合算、1〜最大日数の連番）
+        const daysMap = new Map<number, number>();
+        closedTrades.forEach((r) => {
+          const entered = new Date(r.entered_at);
+          const exited = new Date(r.exited_at!);
+          const days = Math.max(
+            1,
+            Math.round(
+              (exited.getTime() - entered.getTime()) / (1000 * 60 * 60 * 24)
+            )
+          );
+          daysMap.set(days, (daysMap.get(days) || 0) + (r.profit_loss || 0));
+        });
+        const maxDays = Math.max(...Array.from(daysMap.keys()), 1);
+        const barData: DefeatBarData[] = Array.from(
+          { length: maxDays },
+          (_, i) => ({
+            days: i + 1,
+            profit_loss: daysMap.get(i + 1) || 0,
+          })
+        );
+        setDefeatBarData(barData);
+
+        // 棒グラフ: 取引日数 vs 勝敗数（勝ち数は上、負け数は下）
+        const winsMap = new Map<number, number>();
+        const lossesMap = new Map<number, number>();
+        closedTrades.forEach((r) => {
+          const entered = new Date(r.entered_at);
+          const exited = new Date(r.exited_at!);
+          const days = Math.max(
+            1,
+            Math.round(
+              (exited.getTime() - entered.getTime()) / (1000 * 60 * 60 * 24)
+            )
+          );
+          if ((r.profit_loss || 0) >= 0) {
+            winsMap.set(days, (winsMap.get(days) || 0) + 1);
+          } else {
+            lossesMap.set(days, (lossesMap.get(days) || 0) - 1);
+          }
+        });
+        const winLossData: DefeatWinLossData[] = Array.from(
+          { length: maxDays },
+          (_, i) => ({
+            days: i + 1,
+            wins: winsMap.get(i + 1) || 0,
+            losses: lossesMap.get(i + 1) || 0,
+          })
+        );
+        setDefeatWinLossData(winLossData);
+
+        // 散布図: pips vs 損益（FXのみ）
+        const scatterData: DefeatScatterData[] = closedTrades
+          .filter((r) => r.domain === 'fx' && r.entry && r.exit)
+          .map((r) => {
+            const pips = calculatePips({
+              quoteCurrency: r.quote_currency || 'USD',
+              entryPrice: r.entry,
+              exitPrice: r.exit!,
+              position: r.position,
+            });
+            const pl = r.profit_loss || 0;
+            return {
+              pips: Math.abs(Math.round(pips * 10) / 10),
+              profit_loss: Math.abs(pl),
+              isLoss: pl < 0,
+            };
+          });
+        setDefeatScatterData(scatterData);
+
+        // --- 手法分析 ---
+        // 2025/9/16以降の全データ
         const targetDate = new Date('2025-09-16');
-        const nMonthsAgo = new Date();
-        nMonthsAgo.setMonth(
-          nMonthsAgo.getMonth() - METHOD_ANALYSIS_TARGET_MONTHS
-        );
-        const filterDate = targetDate > nMonthsAgo ? targetDate : nMonthsAgo;
-        // 絞り込み条件：methodがunkownでない かつ profit_lossがnullでない
         const recentPL = plData.filter(
-          (record) =>
-            new Date(record.entered_at) >= filterDate &&
-            record.method !== 'unknown' &&
-            record.profit_loss != null
+          (r) =>
+            new Date(r.entered_at) >= targetDate &&
+            r.profit_loss != null
         );
-        // 分析用データに整形
-        const methodStats = calculateMethodAnalysis(recentPL);
-        setMethodAnalysis(methodStats);
+        setMethodAnalysis(calculateMethodAnalysis(recentPL));
       }
 
       setIsLoading(false);
@@ -132,161 +322,7 @@ export default function AnalysisPage() {
     fetchData();
   }, []);
 
-  // // 月次損益を計算
-  // const calculateMonthlyData = (plData: PL[]): MonthlyData[] => {
-  //   const recentData = plData;
-  //   const monthlyMap = new Map<
-  //     string,
-  //     { profit_loss: number; count: number }
-  //   >();
-  //   recentData.forEach((record) => {
-  //     const date = new Date(record.entered_at);
-  //     const monthKey = `${date.getFullYear()}-${String(
-  //       date.getMonth() + 1
-  //     ).padStart(2, '0')}`;
-  //     if (!monthlyMap.has(monthKey)) {
-  //       monthlyMap.set(monthKey, { profit_loss: 0, count: 0 });
-  //     }
-  //     const monthData = monthlyMap.get(monthKey)!;
-  //     monthData.profit_loss += record.profit_loss || 0;
-  //     monthData.count++;
-  //   });
-  //   return Array.from(monthlyMap.entries())
-  //     .map(([month, data]) => ({
-  //       month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
-  //       profit_loss: data.profit_loss,
-  //       pips: 0, // pipsは別関数で計算
-  //     }))
-  //     .sort((a, b) => {
-  //       const [yearA, monthA] = a.month.split('/').map(Number);
-  //       const [yearB, monthB] = b.month.split('/').map(Number);
-  //       return yearA !== yearB ? yearA - yearB : monthA - monthB;
-  //     });
-  // };
-
-  // 月次取引数を計算
-  const calculateMonthlyTradeCountData = (plData: PL[]): MonthlyData[] => {
-    const monthlyMap = new Map<string, { count: number }>();
-    plData.forEach((record) => {
-      const date = new Date(record.entered_at);
-      const monthKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}`;
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { count: 0 });
-      }
-      const monthData = monthlyMap.get(monthKey)!;
-      monthData.count++;
-    });
-    return Array.from(monthlyMap.entries())
-      .map(([month, data]) => ({
-        month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
-        profit_loss: data.count, // profit_lossフィールドに取引数を格納
-        pips: 0,
-      }))
-      .sort((a, b) => {
-        const [yearA, monthA] = a.month.split('/').map(Number);
-        const [yearB, monthB] = b.month.split('/').map(Number);
-        return yearA !== yearB ? yearA - yearB : monthA - monthB;
-      });
-  };
-
-  // 月次元本を計算（累積値）
-  const calculateMonthlyInvestmentData = (cfData: CF[]): MonthlyData[] => {
-    if (cfData.length === 0) return [];
-    const monthlyMap = new Map<string, { investment: number; count: number }>();
-    cfData.forEach((record) => {
-      const date = new Date(record.executed_at);
-      const monthKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}`;
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { investment: 0, count: 0 });
-      }
-      const monthData = monthlyMap.get(monthKey)!;
-      monthData.investment += record.price || 0;
-      monthData.count++;
-    });
-    // データのない月は0で補完
-    const sortedKeys = Array.from(monthlyMap.keys()).sort();
-    const [startYear, startMonth] = sortedKeys[0].split('-').map(Number);
-    const now = new Date();
-    const endYear = now.getFullYear();
-    const endMonth = now.getMonth() + 1;
-    const result: MonthlyData[] = [];
-    let currentYear = startYear;
-    let currentMonth = startMonth;
-    while (
-      currentYear < endYear ||
-      (currentYear === endYear && currentMonth <= endMonth)
-    ) {
-      const monthKey = `${currentYear}-${String(currentMonth).padStart(
-        2,
-        '0'
-      )}`;
-      const data = monthlyMap.get(monthKey);
-      result.push({
-        month: `${currentYear}/${String(currentMonth).padStart(2, '0')}`,
-        profit_loss: data ? data.investment : 0,
-        pips: 0,
-      });
-      currentMonth++;
-      if (currentMonth > 12) {
-        currentMonth = 1;
-        currentYear++;
-      }
-    }
-    // 累積値に変換（投資額は費用扱いでマイナス表示）
-    let cumulativeInvestment = 0;
-    return result.map((monthData) => {
-      cumulativeInvestment += monthData.profit_loss * -1;
-      return {
-        ...monthData,
-        profit_loss: cumulativeInvestment,
-      };
-    });
-  };
-
-  // 月次pipsを計算
-  const calculateMonthlyPipsData = (plData: PL[]): MonthlyData[] => {
-    const fxData = plData.filter(
-      (record) => record.domain === 'fx' // スケール調整のため外貨のみ対象
-    );
-    const monthlyMap = new Map<string, { pips: number; count: number }>();
-    fxData.forEach((record) => {
-      const date = new Date(record.entered_at);
-      const monthKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, '0')}`;
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, { pips: 0, count: 0 });
-      }
-      const monthData = monthlyMap.get(monthKey)!;
-      if (record.exit && record.entry) {
-        const pips = calculatePips({
-          quoteCurrency: record.quote_currency || 'USD',
-          entryPrice: record.entry,
-          exitPrice: record.exit,
-          position: record.position,
-        });
-        monthData.pips += pips;
-      }
-      monthData.count++;
-    });
-    return Array.from(monthlyMap.entries())
-      .map(([month, data]) => ({
-        month: `${month.split('-')[0]}/${month.split('-')[1]}`, // YYYY/MM形式
-        profit_loss: 0, // pipsデータなので0
-        pips: data.pips,
-      }))
-      .sort((a, b) => {
-        const [yearA, monthA] = a.month.split('/').map(Number);
-        const [yearB, monthB] = b.month.split('/').map(Number);
-        return yearA !== yearB ? yearA - yearB : monthA - monthB;
-      });
-  };
-
-  // 分析データ用に整形
+  // 手法別分析データを整形
   const calculateMethodAnalysis = (plData: PL[]): MethodAnalysis[] => {
     const methodMap = new Map<
       string,
@@ -307,7 +343,6 @@ export default function AnalysisPage() {
       if ((record.profit_loss || 0) >= 0) {
         methodData.wins++;
       }
-      // FXのみpipsを計算
       if (record.domain === 'fx' && record.entry && record.exit) {
         const pips = calculatePips({
           quoteCurrency: record.quote_currency || 'USD',
@@ -364,158 +399,350 @@ export default function AnalysisPage() {
 
   return (
     <div className='space-y-6'>
-      {/* <h2 className='text-xl font-bold text-white my-2'>成果の部</h2> */}
+      {/* ===== 最終結果 ===== */}
+      <h2 className='text-xl font-bold text-white my-2'>最終結果</h2>
 
       {/* 累積損益 */}
-      {/* <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>累積損益（円）</h3>
-        <p
-          className={`text-3xl font-bold ${
-            cumulativeProfit >= 0 ? 'text-positive' : 'text-negative'
-          }`}
-        >
-          {cumulativeProfit.toLocaleString()}
-        </p>
-      </Card> */}
-
-      {/* 損益推移 */}
-      {/* <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>損益推移（万円）</h3>
-        <ResponsiveContainer width='100%' height={300}>
-          <BarChart data={monthlyProfitData}>
-            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
-            <XAxis dataKey='month' stroke='#757575' />
-            <YAxis
-              stroke='#757575'
-              orientation='left'
-              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
-              axisLine={false}
-              tickLine={false}
-              tick={{ dx: -15 }}
-            />
-            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#333333',
-                border: 'none',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: '#ECEFF1' }}
-            />
-            <Bar dataKey='profit_loss' fill='#448AFF' name='損益(¥)' />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card> */}
-
-      {/* 取引数推移 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>取引数推移（件）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>累積損益（万円）</h3>
         <ResponsiveContainer width='100%' height={300}>
-          <BarChart data={monthlyTradeCountData}>
-            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
-            <XAxis dataKey='month' stroke='#757575' />
-            <YAxis
-              stroke='#757575'
-              orientation='left'
-              tickFormatter={(value) => `${Math.round(value)}`}
-              axisLine={false}
-              tickLine={false}
-              tick={{ dx: -15 }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#333333',
-                border: 'none',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: '#ECEFF1' }}
-            />
-            <Bar dataKey='profit_loss' fill='#FFA726' name='取引数' />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
-
-      {/* 元本推移 */}
-      <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>
-          資本の回収状況（万円）
-        </h3>
-        <ResponsiveContainer width='100%' height={300}>
-          <AreaChart data={monthlyInvestmentData}>
+          <LineChart data={cumulativePLData}>
             <defs>
-              <linearGradient
-                id='investmentGradient'
-                x1='0'
-                y1='0'
-                x2='0'
-                y2='1'
-              >
-                <stop offset='5%' stopColor='#FF5252' stopOpacity={0.3} />
-                <stop offset='95%' stopColor='#FF5252' stopOpacity={0.1} />
+              <linearGradient id='lineColorPL' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset={gradientOffset(cumulativePLData)} stopColor='#4CAF50' />
+                <stop offset={gradientOffset(cumulativePLData)} stopColor='#FF5252' />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
             <XAxis dataKey='month' stroke='#757575' />
             <YAxis
-              stroke='#757575'
-              orientation='left'
+              {...yAxisProps}
+              domain={symmetricDomain(cumulativePLData.map((d) => d.value))}
               tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
-              axisLine={false}
-              tickLine={false}
-              tick={{ dx: -15 }}
             />
             <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#333333',
-                border: 'none',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: '#ECEFF1' }}
+              {...tooltipStyle}
+              formatter={(value: number) => [
+                `${value.toLocaleString()}円`,
+                '累積損益',
+              ]}
             />
-            <Area
-              type='monotone'
-              dataKey='profit_loss'
-              stroke='#FF5252'
-              fill='url(#investmentGradient)'
-              name='元本(¥)'
+            <Line
+              type='linear'
+              dataKey='value'
+              stroke='url(#lineColorPL)'
+              strokeWidth={2}
+              dot={false}
+              name='累積損益'
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </Card>
 
-      {/* <h2 className='text-xl font-bold text-white my-2'>分析の部</h2> */}
-
-      {/* pips推移 */}
+      {/* 累積資本状況 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>pips推移（FX）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>
+          累積資本状況（万円）
+        </h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <LineChart data={cumulativeCapitalData}>
+            <defs>
+              <linearGradient
+                id='lineColorCapital'
+                x1='0'
+                y1='0'
+                x2='0'
+                y2='1'
+              >
+                <stop offset={gradientOffset(cumulativeCapitalData)} stopColor='#4CAF50' />
+                <stop offset={gradientOffset(cumulativeCapitalData)} stopColor='#FF5252' />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis dataKey='month' stroke='#757575' />
+            <YAxis
+              {...yAxisProps}
+              domain={symmetricDomain(cumulativeCapitalData.map((d) => d.value))}
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              {...tooltipStyle}
+              formatter={(value: number) => [
+                `${value.toLocaleString()}円`,
+                '累積資本',
+              ]}
+            />
+            <Line
+              type='linear'
+              dataKey='value'
+              stroke='url(#lineColorCapital)'
+              strokeWidth={2}
+              dot={false}
+              name='累積資本'
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* 月毎損益 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>月毎損益（万円）</h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <BarChart data={monthlyPLData}>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis dataKey='month' stroke='#757575' />
+            <YAxis
+              {...yAxisProps}
+              domain={symmetricDomain(monthlyPLData.map((d) => d.value))}
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              {...tooltipStyle}
+              formatter={(value: number) => [
+                `${value.toLocaleString()}円`,
+                '損益',
+              ]}
+            />
+            <Bar dataKey='value' name='損益'>
+              {monthlyPLData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={entry.value >= 0 ? '#4CAF50' : '#FF5252'}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* 月毎pips */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>月毎pips（FX）</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyPipsData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
             <XAxis dataKey='month' stroke='#757575' />
             <YAxis
-              stroke='#757575'
-              orientation='left'
+              {...yAxisProps}
+              domain={symmetricDomain(monthlyPipsData.map((d) => d.value))}
               tickFormatter={(value) => `${Math.round(value)}`}
-              axisLine={false}
-              tickLine={false}
-              tick={{ dx: -15 }}
             />
             <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#333333',
-                border: 'none',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: '#ECEFF1' }}
+              {...tooltipStyle}
+              formatter={(value: number) => [
+                `${(Math.round(value * 10) / 10).toFixed(1)} pips`,
+                'pips',
+              ]}
             />
-            <Bar dataKey='pips' fill='#B39DDB' name='pips' />
+            <Bar dataKey='value' name='pips'>
+              {monthlyPipsData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={entry.value >= 0 ? '#4CAF50' : '#FF5252'}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </Card>
 
-      {/* 手法別勝率分析 */}
+      {/* ===== 敗北分析 ===== */}
+      <h2 className='text-xl font-bold text-white my-2'>敗北分析</h2>
+
+      {/* 取引日数 vs 損益 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>
+          取引日数と損益（万円）
+        </h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <BarChart data={defeatBarData}>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis
+              dataKey='days'
+              stroke='#757575'
+              label={{
+                value: '日',
+                position: 'insideBottomRight',
+                offset: -5,
+                fill: '#757575',
+              }}
+            />
+            <YAxis
+              {...yAxisProps}
+              domain={symmetricDomain(defeatBarData.map((d) => d.profit_loss))}
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              content={({ payload }) => {
+                if (!payload?.length) return null;
+                const data = payload[0].payload as DefeatBarData;
+                return (
+                  <div
+                    style={{
+                      backgroundColor: '#333333',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                    }}
+                  >
+                    <p
+                      style={{ color: '#ECEFF1' }}
+                    >{`取引日数: ${data.days}日`}</p>
+                    <p
+                      style={{ color: '#ECEFF1' }}
+                    >{`損益: ${data.profit_loss.toLocaleString()}円`}</p>
+                  </div>
+                );
+              }}
+            />
+            <Bar dataKey='profit_loss' name='損益'>
+              {defeatBarData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={entry.profit_loss >= 0 ? '#4CAF50' : '#FF5252'}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* 取引日数 vs 勝敗数 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>
+          取引日数と勝敗数
+        </h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <BarChart data={defeatWinLossData} stackOffset='sign'>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis
+              dataKey='days'
+              stroke='#757575'
+              label={{
+                value: '日',
+                position: 'insideBottomRight',
+                offset: -5,
+                fill: '#757575',
+              }}
+            />
+            <YAxis
+              {...yAxisProps}
+              domain={symmetricDomain(
+                defeatWinLossData.flatMap((d) => [d.wins, d.losses])
+              )}
+              tickFormatter={(value) => `${Math.round(value)}`}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              content={({ payload }) => {
+                if (!payload?.length) return null;
+                const data = payload[0].payload as DefeatWinLossData;
+                return (
+                  <div
+                    style={{
+                      backgroundColor: '#333333',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                    }}
+                  >
+                    <p
+                      style={{ color: '#ECEFF1' }}
+                    >{`取引日数: ${data.days}日`}</p>
+                    <p
+                      style={{ color: '#4CAF50' }}
+                    >{`勝ち: ${data.wins}`}</p>
+                    <p
+                      style={{ color: '#FF5252' }}
+                    >{`負け: ${Math.abs(data.losses)}`}</p>
+                  </div>
+                );
+              }}
+            />
+            <Bar
+              dataKey='wins'
+              stackId='a'
+              fill='#4CAF50'
+              name='勝ち'
+            />
+            <Bar
+              dataKey='losses'
+              stackId='a'
+              fill='#FF5252'
+              name='負け'
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* pips vs 損益 散布図 */}
+      <Card padding='large'>
+        <h3 className='text-lg font-bold text-white my-2'>
+          pipsと損益（FX、万円）
+        </h3>
+        <ResponsiveContainer width='100%' height={300}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
+            <XAxis
+              type='number'
+              dataKey='pips'
+              name='pips'
+              stroke='#757575'
+              label={{
+                value: 'pips',
+                position: 'insideBottomRight',
+                offset: -5,
+                fill: '#757575',
+              }}
+            />
+            <YAxis
+              type='number'
+              dataKey='profit_loss'
+              name='損益'
+              {...yAxisProps}
+              tickFormatter={(value) => `${(value / 10000).toFixed(1)}`}
+            />
+            <ReferenceLine y={0} stroke='#FF0000' strokeDasharray='2 2' />
+            <Tooltip
+              content={({ payload }) => {
+                if (!payload?.length) return null;
+                const data = payload[0].payload as DefeatScatterData;
+                return (
+                  <div
+                    style={{
+                      backgroundColor: '#333333',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                    }}
+                  >
+                    <p
+                      style={{ color: '#ECEFF1' }}
+                    >{`pips: ${data.pips}`}</p>
+                    <p
+                      style={{ color: '#ECEFF1' }}
+                    >{`損益: ${data.profit_loss.toLocaleString()}円`}</p>
+                  </div>
+                );
+              }}
+            />
+            <Scatter data={defeatScatterData}>
+              {defeatScatterData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={entry.isLoss ? '#FF5252' : '#4CAF50'}
+                />
+              ))}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* ===== 手法分析 ===== */}
+      <h2 className='text-xl font-bold text-white my-2'>手法分析</h2>
+
       <div className='space-y-4'>
         {methodAnalysis.map((method, index) => (
           <Card key={index} padding='large'>
