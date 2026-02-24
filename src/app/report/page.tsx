@@ -52,14 +52,6 @@ interface MethodAnalysis {
   failure_cases: PL[];
 }
 
-// 日本語の手法名を英語の値にマッピング
-const getMethodValue = (methodName: string) => {
-  const option = methodOptions.find(
-    (opt) => opt.label === methodName && opt.value !== 'unknown'
-  );
-  return option?.value;
-};
-
 // 手法分析の表示サンプル数（成功例・失敗例それぞれ）
 const METHOD_ANALYSIS_SAMPLE_COUNT = 3;
 
@@ -377,15 +369,23 @@ export default function AnalysisPage() {
           .slice(0, METHOD_ANALYSIS_SAMPLE_COUNT),
       }))
       .sort((a, b) => {
-        const aMethodValue = getMethodValue(a.method);
-        const bMethodValue = getMethodValue(b.method);
-        const aIndex = methodOptions.findIndex(
-          (option) => option.value === aMethodValue
-        );
-        const bIndex = methodOptions.findIndex(
-          (option) => option.value === bMethodValue
-        );
-        return aIndex - bIndex;
+        const priorityOrder = [
+          '分足ピボット更新',
+          '分足ピボット反発',
+          '日足ピボット更新',
+          '日足ピボット反発',
+        ];
+        const lastLabel = '手法が未指定';
+        const aIsLast = a.method === lastLabel;
+        const bIsLast = b.method === lastLabel;
+        if (aIsLast && !bIsLast) return 1;
+        if (!aIsLast && bIsLast) return -1;
+        const aPriority = priorityOrder.indexOf(a.method);
+        const bPriority = priorityOrder.indexOf(b.method);
+        if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
+        if (aPriority !== -1) return -1;
+        if (bPriority !== -1) return 1;
+        return a.method.localeCompare(b.method);
       });
   };
 
@@ -399,12 +399,12 @@ export default function AnalysisPage() {
 
   return (
     <div className='space-y-6'>
-      {/* ===== 最終結果 ===== */}
-      <h2 className='text-xl font-bold text-white my-2'>最終結果</h2>
+      {/* ===== 投資成果 ===== */}
+      <h2 className='text-xl font-bold text-white my-2'>投資成果</h2>
 
       {/* 累積損益 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>累積損益（万円）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>累積損益</h3>
         <ResponsiveContainer width='100%' height={300}>
           <LineChart data={cumulativePLData}>
             <defs>
@@ -440,11 +440,9 @@ export default function AnalysisPage() {
         </ResponsiveContainer>
       </Card>
 
-      {/* 累積資本状況 */}
+      {/* 累積資本 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>
-          累積資本状況（万円）
-        </h3>
+        <h3 className='text-lg font-bold text-white my-2'>累積資本</h3>
         <ResponsiveContainer width='100%' height={300}>
           <LineChart data={cumulativeCapitalData}>
             <defs>
@@ -488,7 +486,7 @@ export default function AnalysisPage() {
 
       {/* 月毎損益 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>月毎損益（万円）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>月毎損益</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyPLData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
@@ -520,7 +518,7 @@ export default function AnalysisPage() {
 
       {/* 月毎pips */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>月毎pips（FX）</h3>
+        <h3 className='text-lg font-bold text-white my-2'>FX月毎pips</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={monthlyPipsData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
@@ -555,9 +553,7 @@ export default function AnalysisPage() {
 
       {/* 取引日数 vs 損益 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>
-          取引日数と損益（万円）
-        </h3>
+        <h3 className='text-lg font-bold text-white my-2'>取引日数と損益</h3>
         <ResponsiveContainer width='100%' height={300}>
           <BarChart data={defeatBarData}>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
@@ -680,9 +676,7 @@ export default function AnalysisPage() {
 
       {/* pips vs 損益 散布図 */}
       <Card padding='large'>
-        <h3 className='text-lg font-bold text-white my-2'>
-          pipsと損益（FX、万円）
-        </h3>
+        <h3 className='text-lg font-bold text-white my-2'>pipsと損益</h3>
         <ResponsiveContainer width='100%' height={300}>
           <ScatterChart>
             <CartesianGrid strokeDasharray='3 3' stroke='#333333' />
