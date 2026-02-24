@@ -3,7 +3,7 @@
 import { Card } from '@/components/Card';
 import { calculatePips } from '@/lib/calc';
 import { createClient } from '@/lib/supabase/client';
-import { CF, methodOptions, PL } from '@/types/type';
+import { methodOptions, PL } from '@/types/type';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
